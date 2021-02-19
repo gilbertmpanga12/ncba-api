@@ -12,16 +12,25 @@ var fonts = {
  };
 
  var docDefinition = {
+	header: {
+        margin:  [23,6,18,28],
+        columns: [
+            {
+                image: 'controllers/fonts/logo.png',
+				width: 100
+			}
+        ]
+    },
 	content: [
 		{text: 'T', style: 'subheader'},
 		{
 			layout: 'lightHorizontalLines',
 			table: {
 			 headerRows: 1,
-			  widths: [ '*', 'auto', 100, '*', '*'],
+			  widths: [ '*', '*'],
 	  
 			  body: [
-				[ 'customerId', 'points']
+				[ 'Customer ID', 'Points']
 			  ]
 			}
 		  }
@@ -53,7 +62,9 @@ var fonts = {
 
 
 router.post('/generate-pdf', async (req,res) => {
-    const randomisedWinners = req.body;
+	const randomisedWinners = req.body;
+	docDefinition.content[0].text = 'Randomised 10 Lucky Winners';
+	docDefinition.content[1].table.body.push(['food','busket']);
 	await printPdf(fonts, docDefinition, res, randomisedWinners);
     
 });
@@ -61,7 +72,7 @@ router.post('/generate-pdf', async (req,res) => {
 
 router.post('/generate-csv', async (req,res) => {
     const randomisedWinners = req.body;
-	await printCsv(fonts, docDefinition, res, randomisedWinners);
+	await printCsv(randomisedWinners, res);
     
 });
 
