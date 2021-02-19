@@ -1,10 +1,10 @@
 const {Router} = require('express');
 const router = Router();
-const admin = require('firebase-admin');
 const {ParallelIndividualWrites, RandomiseLuckyWinners} = require('../helpers/parallel_add');
 
 router.post('/add-customer-numbers', async (req, res, next) => {
     const customerIds = req.body;
+    console.log(customerIds)
     await ParallelIndividualWrites(customerIds, res);
 });
 
