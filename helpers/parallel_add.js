@@ -1,6 +1,7 @@
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 
+
 async function ParallelIndividualWrites(datas, res) {
     try{
         const collection = admin.firestore().collection('customerPoints');
