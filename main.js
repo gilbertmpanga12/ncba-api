@@ -5,7 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const rateLimit = require("express-rate-limit");
-const port = env.;
+const port = 5000;
 const add_customer_numbers = require('./controllers/add_customer_ids');
 const {getFirebaseUser} = require('./helpers/firebaseSecurity');
 
