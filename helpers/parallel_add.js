@@ -13,6 +13,17 @@ async function ParallelIndividualWrites(datas, res) {
     }
 }
 
+async function WriteCustomerDetails(datas, res) {
+    try{
+        const collection = admin.firestore().collection('weeklyDrawsDetails');
+        await Promise.all(datas.map((data) => collection.add(data)));
+        res.status(200).send({message: 'Succefully added all customer ids'});
+    }catch(e){
+        console.log('FAILED TO ADD CUSTOMER IDS');
+        res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
+    }
+}
+
  async function RandomiseLuckyWinners(res){
     try{
         const collection = admin.firestore().collection('customerPoints');
@@ -29,4 +40,4 @@ async function ParallelIndividualWrites(datas, res) {
     }
 }
 
-module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners};
+module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails};
