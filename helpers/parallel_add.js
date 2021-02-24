@@ -66,7 +66,7 @@ async function clusterWeeklyLoosers(luckyWinners){
         }));
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
-        console.log('FAILED TO ADD CUSTOMER IDS', e);
+        console.log('FAILED TO CLUSTER WEEKLY LOOSERS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
