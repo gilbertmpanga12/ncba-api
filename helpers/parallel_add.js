@@ -11,7 +11,7 @@ async function ParallelIndividualWrites(datas, res, name) {
         loanReference: data['Loan Reference']})));
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
-        console.log('FAILED TO ADD CUSTOMER IDS', e);
+        logger.info('FAILED TO ADD CUSTOMER IDS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
@@ -22,8 +22,7 @@ async function WriteCustomerDetails(datas, res, name) {
         await Promise.all(datas.map((data) => collection.add(data)));
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
-        console.log('FAILED TO ADD CUSTOMER IDS', e);
-        logger.info(e);
+        logger.info('FAILED TO ADD CUSTOMER IDS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }

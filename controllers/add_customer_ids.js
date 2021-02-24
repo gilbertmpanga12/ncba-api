@@ -5,17 +5,19 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails,
 
 router.post('/add-customer-numbers', async (req, res, next) => {
     const customerIds = req.body;
-    await ParallelIndividualWrites(customerIds, res);
+    const name = req.body['name'];
+    await ParallelIndividualWrites(customerIds, res, name);
 });
 
 router.post('/add-customer-details', async (req, res, next) => {
     const customerIds = req.body;
-    console.log(customerIds)
-    await WriteCustomerDetails(customerIds, res);
+    const name = req.body['name'];
+    await WriteCustomerDetails(customerIds, res, name);
 });
 
 router.get('/randomise-lucky-winners', async (req, res, next) => {
-    await RandomiseLuckyWinners(res);
+    const name = req.body['name'];
+    await RandomiseLuckyWinners(res, name);
 });
 
 router.post('/generate-raffle-project', async (req, res, next) => {
@@ -28,7 +30,7 @@ router.post('/generate-raffle-project', async (req, res, next) => {
 
 router.post('/enter-grand-draw', async (req, res, next) => {
     const uid = req.body['uid'];
-    const name = req.body['name'];// 
+    const name = req.body['name'];
     await enterGrandDraw(uid, name, res);
 });
 
