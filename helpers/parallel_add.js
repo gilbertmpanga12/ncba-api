@@ -4,9 +4,9 @@ const {logger} = require('../helpers/logger');
   
 
 
-async function ParallelIndividualWrites(datas, res) {
+async function ParallelIndividualWrites(datas, res, name) {
     try{
-        const collection = admin.firestore().collection(`week_${count}_customer_points`);
+        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         await Promise.all(datas.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
         loanReference: data['Loan Reference']})));
         res.status(200).send({message: 'Succefully added all customer ids'});
@@ -16,9 +16,9 @@ async function ParallelIndividualWrites(datas, res) {
     }
 }
 
-async function WriteCustomerDetails(datas, res) {
+async function WriteCustomerDetails(datas, res, name) {
     try{
-        const collection = admin.firestore().collection('weeklyDrawsDetails');
+        const collection = admin.firestore().collection(`${name}_week_${count}_customer_details`);
         await Promise.all(datas.map((data) => collection.add(data)));
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
@@ -28,9 +28,9 @@ async function WriteCustomerDetails(datas, res) {
     }
 }
 
- async function RandomiseLuckyWinners(res){
+ async function RandomiseLuckyWinners(res, name){
     try{
-        const collection = admin.firestore().collection(`week_${count}_customer_points`);
+        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         const doc = await collection.get();
         const results = [];
         doc.forEach(doc => {
@@ -49,21 +49,21 @@ async function WriteCustomerDetails(datas, res) {
 
 async function storeRandomisedWinners(week_count, luckyWinners, name){
     try{
-    const collection = admin.firestore().collection(`winners_${name}_${week_count}`).doc(week_count);
+    const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`).doc(week_count);
     collection.set(luckyWinners);
-    clusterWeeklyLoosers(luckyWinners);
+    clusterWeeklyLoosers(luckyWinners, week_count, name);
     }catch(e){
         logger.info(e); 
     }
 }
 
-async function clusterWeeklyLoosers(luckyWinners, count){
+async function clusterWeeklyLoosers(luckyWinners, count, name){
     try{
-        const collection = admin.firestore().collection(`week_${count}_customer_points`);
+        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         await Promise.all(luckyWinners.map((winner) => {
             collection.where('Customer Number', '==', winner['Customer Number']).get().then((winner_id) => {
                 winner_id.forEach(x => {
-                    admin.firestore().collection(`week_${count}_customer_points`).doc(x.id).delete()
+                    admin.firestore().collection(`${name}_week_${count}_customer_point`).doc(x.id).delete()
                 });
             })
         }));
