@@ -34,6 +34,8 @@ async function WriteCustomerDetails(datas, res) {
             results.push(doc.data());
         });
         const luckyWinners = pickRandom(results, {count: 10});
+        const weekCount = 1;
+        storeRandomisedWinners(weekCount, luckyWinners);
         res.status(200).send({message: luckyWinners});
     }catch(e){
         console.log(e);
@@ -41,4 +43,40 @@ async function WriteCustomerDetails(datas, res) {
     }
 }
 
-module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails};
+
+async function storeRandomisedWinners(week_count, luckyWinners, name){
+    try{
+    const collection = admin.firestore().collection(`winners_${name}_${week_count}`).doc(week_count);
+    collection.set(luckyWinners);
+    }catch(e){
+       console.log(e);  
+    }
+}
+
+async function enterGrandDraw(uid, name, res){
+    try{
+    const week_count_total = await admin.firestore().collection(`${name}_week_count_total`).doc(uid).get();
+    if (!week_count_total.exists) {
+        console.log('No such document!');
+      } else {
+        res.status(200).send({message: doc.data()});
+      }
+    }catch(e){
+        res.status(500).send({message: e});
+    }
+}
+
+async function generateRaffleProject(uid, count, name, res){
+    try{
+    await admin.firestore().collection(`${name}_week_count_total`).doc(uid).set({
+        week_count_total: count
+    });
+    res.status(200).send({message: 'Created Successfully'});
+    }catch(e){
+        res.status(500).send({message: e});
+    }
+}
+
+
+module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
+    generateRaffleProject, enterGrandDraw};
