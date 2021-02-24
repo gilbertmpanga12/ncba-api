@@ -54,8 +54,9 @@ async function storeRandomisedWinners(week_count, luckyWinners, name){
     }
 }
 
-async function clusterWeeklyLoosers(luckyWinners){
+async function clusterWeeklyLoosers(luckyWinners, count, res){
     try{
+        console.log(luckyWinners)
         const collection = admin.firestore().collection(`week_${count}_customer_points`);
         await Promise.all(luckyWinners.map((winner) => {
             collection.where('Customer Number', '==', winner['Customer Number']).get().then((winner_id) => {
@@ -67,7 +68,7 @@ async function clusterWeeklyLoosers(luckyWinners){
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
         console.log('FAILED TO CLUSTER WEEKLY LOOSERS', e);
-        res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
+        res.status(500).send({message: 'FAILED TO CLUSTER WEEKLY LOOSERS'});
     }
 }
 
@@ -97,4 +98,4 @@ async function generateRaffleProject(uid, count, name, res){
 
 
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
-    generateRaffleProject, enterGrandDraw};
+    generateRaffleProject, enterGrandDraw, clusterWeeklyLoosers};
