@@ -4,7 +4,6 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails} = 
 
 router.post('/add-customer-numbers', async (req, res, next) => {
     const customerIds = req.body;
-    console.log(customerIds)
     await ParallelIndividualWrites(customerIds, res);
 });
 

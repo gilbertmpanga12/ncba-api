@@ -5,10 +5,11 @@ const pickRandom = require('pick-random');
 async function ParallelIndividualWrites(datas, res) {
     try{
         const collection = admin.firestore().collection('customerPoints');
-        await Promise.all(datas.map((data) => collection.add(data)));
+        await Promise.all(datas.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
+        loanReference: data['Loan Reference']})));
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
-        console.log('FAILED TO ADD CUSTOMER IDS');
+        console.log('FAILED TO ADD CUSTOMER IDS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
@@ -19,7 +20,7 @@ async function WriteCustomerDetails(datas, res) {
         await Promise.all(datas.map((data) => collection.add(data)));
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
-        console.log('FAILED TO ADD CUSTOMER IDS');
+        console.log('FAILED TO ADD CUSTOMER IDS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
