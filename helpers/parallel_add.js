@@ -4,7 +4,7 @@ const pickRandom = require('pick-random');
 
 async function ParallelIndividualWrites(datas, res) {
     try{
-        const collection = admin.firestore().collection('customerPoints');
+        const collection = admin.firestore().collection(`week_${count}_customer_points`);
         await Promise.all(datas.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
         loanReference: data['Loan Reference']})));
         res.status(200).send({message: 'Succefully added all customer ids'});
@@ -27,7 +27,7 @@ async function WriteCustomerDetails(datas, res) {
 
  async function RandomiseLuckyWinners(res){
     try{
-        const collection = admin.firestore().collection('customerPoints');
+        const collection = admin.firestore().collection(`week_${count}_customer_points`);
         const doc = await collection.get();
         const results = [];
         doc.forEach(doc => {
@@ -48,8 +48,26 @@ async function storeRandomisedWinners(week_count, luckyWinners, name){
     try{
     const collection = admin.firestore().collection(`winners_${name}_${week_count}`).doc(week_count);
     collection.set(luckyWinners);
+    clusterWeeklyLoosers(luckyWinners);
     }catch(e){
        console.log(e);  
+    }
+}
+
+async function clusterWeeklyLoosers(luckyWinners){
+    try{
+        const collection = admin.firestore().collection(`week_${count}_customer_points`);
+        await Promise.all(luckyWinners.map((winner) => {
+            collection.where('Customer Number', '==', winner['Customer Number']).get().then((winner_id) => {
+                winner_id.forEach(x => {
+                    admin.firestore().collection(`week_${count}_customer_points`).doc(x.id).delete()
+                });
+            })
+        }));
+        res.status(200).send({message: 'Succefully added all customer ids'});
+    }catch(e){
+        console.log('FAILED TO ADD CUSTOMER IDS', e);
+        res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
 
