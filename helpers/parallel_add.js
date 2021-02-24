@@ -37,7 +37,7 @@ async function WriteCustomerDetails(datas, res) {
         res.status(200).send({message: luckyWinners});
     }catch(e){
         console.log(e);
-        res.status(500).send({message: e});
+        res.status(500).send({message: 'Please check whether the data entered was valid or contact support'});
     }
 }
 
