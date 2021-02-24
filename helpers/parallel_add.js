@@ -1,5 +1,7 @@
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
+const {logger} = require('../helpers/logger');
+  
 
 
 async function ParallelIndividualWrites(datas, res) {
@@ -21,6 +23,7 @@ async function WriteCustomerDetails(datas, res) {
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
         console.log('FAILED TO ADD CUSTOMER IDS', e);
+        logger.info(e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
@@ -38,7 +41,7 @@ async function WriteCustomerDetails(datas, res) {
         storeRandomisedWinners(weekCount, luckyWinners);
         res.status(200).send({message: luckyWinners});
     }catch(e){
-        console.log(e);
+        logger.info(e);
         res.status(500).send({message: 'Please check whether the data entered was valid or contact support'});
     }
 }
@@ -50,7 +53,7 @@ async function storeRandomisedWinners(week_count, luckyWinners, name){
     collection.set(luckyWinners);
     clusterWeeklyLoosers(luckyWinners);
     }catch(e){
-       console.log(e);  
+        logger.info(e); 
     }
 }
 
@@ -65,7 +68,7 @@ async function clusterWeeklyLoosers(luckyWinners, count){
             })
         }));
     }catch(e){
-        console.log('FAILED TO CLUSTER WEEKLY LOOSERS', e);
+        logger.info(e);
     }
 }
 

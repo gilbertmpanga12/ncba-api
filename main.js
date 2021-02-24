@@ -25,8 +25,8 @@ app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.json());
 app.get('/refresh-token', getFirebaseUser, (req, res) => res.status(200).json({status: true, ...req.user}));
-app.use('/api', add_customer_numbers);
-app.use('/api',  reports);
+app.use('/api', getFirebaseUser, add_customer_numbers);
+app.use('/api', getFirebaseUser,  reports);
 app.get('/', (req, res) => res.send({message: "App works"}));
 
 app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
