@@ -62,7 +62,7 @@ async function storeRandomisedWinners(count, luckyWinners, name){
 
 async function clusterWeeklyLoosers(luckyWinners, count, name){
     try{
-        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        const collection =  admin.firestore().collection(`${name}_week_${count}_customer_points`);
         await Promise.all(luckyWinners.map((winner) => {
             collection.where('customerId', '==', winner['customerId']).get().then((winner_id) => {
                 winner_id.forEach(x => {
@@ -75,14 +75,45 @@ async function clusterWeeklyLoosers(luckyWinners, count, name){
     }
 }
 
-async function enterGrandDraw(uid, name, res){
+async function enterGrandDraw(name, count , res){
     try{
-    const week_count_total = await admin.firestore().collection(`${name}_week_count_total`).doc(uid).get();
-    if (!week_count_total.exists) {
-        logger.info('No such document!');
-      } else {
-        res.status(200).send({message: doc.data()});
-      }
+    let start = 0;
+    let startDetails = 0;
+    let customerPoints = [];
+    let customerDetails = [];
+    let total = count - 1;
+    let totalDetails = count - 1;
+    while(start <= total){
+        customerPoints.push(`${name}_week_${start}_customer_points`);
+        start++;
+    }
+
+    while(startDetails <= totalDetails){
+        customerDetails.push(`${name}_week_${start}_customer_details`);
+        start++;
+    }
+
+    const grandPoints = admin.firestore().collection(`${name}_grand_total_points`);
+    const grandDetails = admin.firestore().collection(`${name}_grand_total_details`);
+
+    await Promise.all(customerPoints.map((points) => {
+        admin.firestore().collection(points).get().then((collection_points) => {
+            collection_points.forEach(x => {
+                grandPoints.doc(x.id).set(x)
+            });
+        })
+    }));
+
+    await Promise.all(customerDetails.map((details) => {
+        admin.firestore().collection(details).get().then((collection_details) => {
+            collection_details.forEach(x => {
+                grandDetails.doc(x.id).set(x)
+            });
+        })
+    }));
+
+    res.status(200).send({message: `Generated grand draw successfully`});
+    
     }catch(e){
         res.status(500).send({message: e});
     }
