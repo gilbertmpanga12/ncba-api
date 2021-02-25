@@ -36,7 +36,6 @@ async function WriteCustomerDetails(datas,count, res, name) {
             results.push(doc.data());
         });
         const luckyWinners = pickRandom(results, {count: 10});
-        console.log(count, luckyWinners, name);
         storeRandomisedWinners(count, luckyWinners, name);
         
         res.status(200).send({message: luckyWinners});
@@ -49,7 +48,7 @@ async function WriteCustomerDetails(datas,count, res, name) {
 
 async function storeRandomisedWinners(count, luckyWinners, name){
     try{
-    const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(count);
+    const collection = admin.firestore().collection(`Yonja_week_${count}_winners`).doc(count);
     collection.set(luckyWinners, {merge: true});
     clusterWeeklyLoosers(luckyWinners, week_count, name);
     }catch(e){
@@ -59,7 +58,7 @@ async function storeRandomisedWinners(count, luckyWinners, name){
 
 async function clusterWeeklyLoosers(luckyWinners, count, name){
     try{
-        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        const collection = admin.firestore().collection(`Yonja_week_${count}_customer_points`);
         await Promise.all(luckyWinners.map((winner) => {
             collection.where('customerId', '==', winner['customerId']).get().then((winner_id) => {
                 winner_id.forEach(x => {
