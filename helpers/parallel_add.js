@@ -36,8 +36,9 @@ async function WriteCustomerDetails(datas,count, res, name) {
             results.push(doc.data());
         });
         const luckyWinners = pickRandom(results, {count: 10});
-        console.log('lucky winners', luckyWinners);
+        console.log(`${name}_week_${count}_winners`)
         storeRandomisedWinners(count, luckyWinners, name);
+        
         res.status(200).send({message: luckyWinners});
     }catch(e){
         logger.info(e);
