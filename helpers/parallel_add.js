@@ -36,8 +36,8 @@ async function WriteCustomerDetails(datas,count, res, name) {
             results.push(doc.data());
         });
         const luckyWinners = pickRandom(results, {count: 10});
-        const weekCount = count;
-        storeRandomisedWinners(weekCount, luckyWinners);
+        console.log('lucky winners', luckyWinners);
+        storeRandomisedWinners(count, luckyWinners, name);
         res.status(200).send({message: luckyWinners});
     }catch(e){
         logger.info(e);
@@ -46,9 +46,9 @@ async function WriteCustomerDetails(datas,count, res, name) {
 }
 
 
-async function storeRandomisedWinners(week_count, luckyWinners, name){
+async function storeRandomisedWinners(count, luckyWinners, name){
     try{
-    const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(week_count);
+    const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(count);
     collection.set(luckyWinners, {merge: true});
     clusterWeeklyLoosers(luckyWinners, week_count, name);
     }catch(e){
