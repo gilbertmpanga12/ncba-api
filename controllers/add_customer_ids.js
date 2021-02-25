@@ -26,9 +26,9 @@ router.post('/randomise-lucky-winners', async (req, res, next) => {
 
 
 router.post('/enter-grand-draw', async (req, res, next) => {
-    const uid = req.body['uid'];
+    const count = req.body['count'];
     const name = req.body['name'];
-    await enterGrandDraw(uid, name, res);
+    await enterGrandDraw(name, count, res);
 });
 
 
