@@ -30,11 +30,13 @@ async function WriteCustomerDetails(datas,count, res, name) {
  async function RandomiseLuckyWinners(name, count, res){
     try{
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        console.log(`${name}_week_${count}_customer_points`);
         const doc = await collection.get();
         const results = [];
         doc.forEach(doc => {
             results.push(doc.data());
         });
+        console.log(results)
         const luckyWinners = pickRandom(results, {count: 10});
         const weekCount = count;
         storeRandomisedWinners(weekCount, luckyWinners);
