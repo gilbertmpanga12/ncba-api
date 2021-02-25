@@ -52,7 +52,7 @@ async function storeRandomisedWinners(count, luckyWinners, name){
     console.log(luckyWinners, count, name);
     // const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(count);
     // collection.set(luckyWinners, {merge: true});
-    // clusterWeeklyLoosers(luckyWinners, count, name);
+    clusterWeeklyLoosers(luckyWinners, count, name);
     }catch(e){
         logger.info(e); 
     }
