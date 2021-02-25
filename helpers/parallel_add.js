@@ -27,7 +27,7 @@ async function WriteCustomerDetails(datas, res, name) {
     }
 }
 
- async function RandomiseLuckyWinners(res, name){
+ async function RandomiseLuckyWinners(name, count, res){
     try{
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         const doc = await collection.get();
@@ -36,7 +36,7 @@ async function WriteCustomerDetails(datas, res, name) {
             results.push(doc.data());
         });
         const luckyWinners = pickRandom(results, {count: 10});
-        const weekCount = 1;
+        const weekCount = count;
         storeRandomisedWinners(weekCount, luckyWinners);
         res.status(200).send({message: luckyWinners});
     }catch(e){
@@ -49,7 +49,7 @@ async function WriteCustomerDetails(datas, res, name) {
 async function storeRandomisedWinners(week_count, luckyWinners, name){
     try{
     const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`).doc(week_count);
-    collection.set(luckyWinners);
+    collection.set(luckyWinners, {merge: true});
     clusterWeeklyLoosers(luckyWinners, week_count, name);
     }catch(e){
         logger.info(e); 
@@ -75,7 +75,7 @@ async function enterGrandDraw(uid, name, res){
     try{
     const week_count_total = await admin.firestore().collection(`${name}_week_count_total`).doc(uid).get();
     if (!week_count_total.exists) {
-        console.log('No such document!');
+        logger.info('No such document!');
       } else {
         res.status(200).send({message: doc.data()});
       }
@@ -84,17 +84,8 @@ async function enterGrandDraw(uid, name, res){
     }
 }
 
-async function generateRaffleProject(uid, count, name, res){
-    try{
-    await admin.firestore().collection(`${name}_week_count_total`).doc(uid).set({
-        week_count_total: count
-    });
-    res.status(200).send({message: 'Created Successfully'});
-    }catch(e){
-        res.status(500).send({message: e});
-    }
-}
+
 
 
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
-    generateRaffleProject, enterGrandDraw, clusterWeeklyLoosers};
+     enterGrandDraw, clusterWeeklyLoosers};
