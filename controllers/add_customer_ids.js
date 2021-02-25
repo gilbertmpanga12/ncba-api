@@ -17,7 +17,7 @@ router.post('/add-customer-details', async (req, res, next) => {
     await WriteCustomerDetails(customerIds, count, res, name);
 });
 
-router.get('/randomise-lucky-winners', async (req, res, next) => {
+router.post('/randomise-lucky-winners', async (req, res, next) => {
     const name = req.body['name'];
     const count = req.body['count'];
     await RandomiseLuckyWinners(name, count, res);
