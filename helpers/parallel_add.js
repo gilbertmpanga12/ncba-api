@@ -48,7 +48,7 @@ async function WriteCustomerDetails(datas,count, res, name) {
 
 async function storeRandomisedWinners(week_count, luckyWinners, name){
     try{
-    const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`).doc(week_count);
+    const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(week_count);
     collection.set(luckyWinners, {merge: true});
     clusterWeeklyLoosers(luckyWinners, week_count, name);
     }catch(e){
