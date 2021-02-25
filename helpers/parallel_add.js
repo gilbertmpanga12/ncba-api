@@ -48,9 +48,11 @@ async function WriteCustomerDetails(datas,count, res, name) {
 
 async function storeRandomisedWinners(count, luckyWinners, name){
     try{
-    const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(count);
-    collection.set(luckyWinners, {merge: true});
-    clusterWeeklyLoosers(luckyWinners, count, name);
+    console.log(`${name}_week_${count}_winners`, count);
+    console.log(luckyWinners, count, name);
+    // const collection = admin.firestore().collection(`${name}_week_${count}_winners`).doc(count);
+    // collection.set(luckyWinners, {merge: true});
+    // clusterWeeklyLoosers(luckyWinners, count, name);
     }catch(e){
         logger.info(e); 
     }
@@ -58,14 +60,16 @@ async function storeRandomisedWinners(count, luckyWinners, name){
 
 async function clusterWeeklyLoosers(luckyWinners, count, name){
     try{
-        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
-        await Promise.all(luckyWinners.map((winner) => {
-            collection.where('customerId', '==', winner['customerId']).get().then((winner_id) => {
-                winner_id.forEach(x => {
-                    admin.firestore().collection(`${name}_week_${count}_customer_point`).doc(x.id).delete()
-                });
-            })
-        }));
+        console.log('CLUSTER LEVEL')
+        console.log(luckyWinners, count, name)
+        // const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        // await Promise.all(luckyWinners.map((winner) => {
+        //     collection.where('customerId', '==', winner['customerId']).get().then((winner_id) => {
+        //         winner_id.forEach(x => {
+        //             admin.firestore().collection(`${name}_week_${count}_customer_point`).doc(x.id).delete()
+        //         });
+        //     })
+        // }));
     }catch(e){
         logger.info(e);
     }
