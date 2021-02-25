@@ -4,7 +4,7 @@ const {logger} = require('../helpers/logger');
   
 
 
-async function ParallelIndividualWrites(datas, res, name) {
+async function ParallelIndividualWrites(datas,count, res, name) {
     try{
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         await Promise.all(datas.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
@@ -16,7 +16,7 @@ async function ParallelIndividualWrites(datas, res, name) {
     }
 }
 
-async function WriteCustomerDetails(datas, res, name) {
+async function WriteCustomerDetails(datas,count, res, name) {
     try{
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_details`);
         await Promise.all(datas.map((data) => collection.add(data)));

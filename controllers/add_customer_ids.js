@@ -6,13 +6,15 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails,
 router.post('/add-customer-numbers', async (req, res, next) => {
     const customerIds = req.body['payload'];
     const name = req.body['name'];
-    await ParallelIndividualWrites(customerIds, res, name);
+    const count = req.body['count'];
+    await ParallelIndividualWrites(customerIds, count, res, name);
 });
 
 router.post('/add-customer-details', async (req, res, next) => {
     const customerIds = req.body['payload'];
     const name = req.body['name'];
-    await WriteCustomerDetails(customerIds, res, name);
+    const count = req.body['count'];
+    await WriteCustomerDetails(customerIds, count, res, name);
 });
 
 router.get('/randomise-lucky-winners', async (req, res, next) => {
