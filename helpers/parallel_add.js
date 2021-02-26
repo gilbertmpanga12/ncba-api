@@ -77,43 +77,43 @@ async function clusterWeeklyLoosers(luckyWinners, count, name){
 
 async function enterGrandDraw(name, count , res){
     try{
-    let start = 0;
-    let startDetails = 0;
-    let customerPoints = [];
-    let customerDetails = [];
-    let total = count - 1;
-    let totalDetails = count - 1;
-    while(start <= total){
-        customerPoints.push(`${name}_week_${start}_customer_points`);
-        start++;
-    }
-
-    while(startDetails <= totalDetails){
-        customerDetails.push(`${name}_week_${start}_customer_details`);
-        start++;
-    }
-
-    const grandPoints = admin.firestore().collection(`${name}_grand_total_points`);
-    const grandDetails = admin.firestore().collection(`${name}_grand_total_details`);
-
-    await Promise.all(customerPoints.map((points) => {
-        admin.firestore().collection(points).get().then((collection_points) => {
-            collection_points.forEach(x => {
-                grandPoints.doc(x.id).set(x)
-            });
-        })
-    }));
-
-    await Promise.all(customerDetails.map((details) => {
-        admin.firestore().collection(details).get().then((collection_details) => {
-            collection_details.forEach(x => {
-                grandDetails.doc(x.id).set(x)
-            });
-        })
-    }));
-
-    res.status(200).send({message: `Generated grand draw successfully`});
-    
+        let start = 1;
+        let startDetails = 1;
+        let customerPoints = [];
+        let customerDetails = [];
+        let total = count;
+        let totalDetails = count;
+        while(start <= total){
+            customerPoints.push(`${name}_week_${start}_customer_points`);
+            start++;
+        }
+        
+        while(startDetails <= totalDetails){
+            customerDetails.push(`${name}_week_${startDetails}_customer_details`);
+            startDetails++;
+        }
+        const grandPoints = admin.firestore().collection(`${name}_grand_total_points`);
+        const grandDetails = admin.firestore().collection(`${name}_grand_total_details`);
+        
+        await Promise.all(customerPoints.map((points) => {
+            admin.firestore().collection(points).get().then((collection_points) => {
+                collection_points.forEach(x => {
+                    grandPoints.doc(x.id).set(x.data())
+                });
+            })
+        }));
+        
+        
+        await Promise.all(customerDetails.map((details) => {
+            admin.firestore().collection(details).get().then((collection_details) => {
+                collection_details.forEach(x => {
+                    grandDetails.doc(x.id).set(x.data())
+                });
+            })
+        }));
+        
+        res.status(200).send({message: `Generated grand draw successfully`});
+        
     }catch(e){
         res.status(500).send({message: e});
     }
