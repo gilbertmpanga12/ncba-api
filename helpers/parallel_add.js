@@ -1,3 +1,4 @@
+
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
@@ -15,6 +16,23 @@ async function ParallelIndividualWrites(datas,count, res, name) {
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
+
+async function AddWeekStates(name, datas, res) {
+    try{
+        const collection = admin.firestore().collection('all_projects');
+        await Promise.all(datas.map((data) => {
+             let payload = {};
+             payload['state'] = false;
+             payload['week'] = parseInt(data.replace( /^\D+/g, ''));
+            collection.doc(name).collection('week_states').doc(data).set(payload);
+        }));
+        res.status(200).send({message: 'Succefully added all WEEK STATES'});
+    }catch(e){
+        logger.info('FAILED TO ADD WEEK STATES', e);
+        res.status(500).send({message: 'FAILED TO ADD ADD WEEK STATES'});
+    }
+}
+
 
 async function WriteCustomerDetails(datas,count, res, name) {
     try{
@@ -123,4 +141,4 @@ async function enterGrandDraw(name, count , res){
 
 
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
-     enterGrandDraw, clusterWeeklyLoosers};
+     enterGrandDraw, clusterWeeklyLoosers, AddWeekStates};
