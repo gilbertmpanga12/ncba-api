@@ -26,6 +26,13 @@ async function AddWeekStates(name, datas, res) {
              payload['week'] = parseInt(data.replace( /^\D+/g, ''));
             collection.doc(name).collection('week_states').doc(data).set(payload);
         }));
+        
+        await Promise.all(datas.map((data) => {
+            let payload = {};
+            payload['state'] = false;
+            payload['week'] = parseInt(data.replace( /^\D+/g, ''));
+           collection.doc(name).collection('week_state_draw').doc(data).set(payload);
+       }));
         res.status(200).send({message: 'Succefully added all WEEK STATES'});
     }catch(e){
         logger.info('FAILED TO ADD WEEK STATES', e);
@@ -56,7 +63,6 @@ async function WriteCustomerDetails(datas,count, res, name) {
         });
         console.log(results)
         const luckyWinners = pickRandom(results, {count: 10});
-        console.log(luckyWinners)
         storeRandomisedWinners(count, luckyWinners, name);
         
         res.status(200).send({message: luckyWinners});
