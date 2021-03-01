@@ -7,7 +7,7 @@ const uploader = fileUpload({
     limits: { fileSize: 50 * 1024 * 1024 }
 });
 
-router.post('/add-customer-numbers', uploader, async (req, res, next) => {
+router.post('/add-customer-details', uploader, async (req, res, next) => {
     const customerIds = req.files.payload;
     const name = req.body['name'];
     const count = req.body['count'];

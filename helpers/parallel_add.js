@@ -3,6 +3,8 @@ const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
 const csv = require("csvtojson");
+const { nanoid } = require('nanoid');
+
 
 async function ParallelIndividualWrites(datas,count, res, name) {
     try{
@@ -15,11 +17,20 @@ async function ParallelIndividualWrites(datas,count, res, name) {
         const user_details = csvRows;
         // user points
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
-        await Promise.all(user_details.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
-        loanReference: data['Loan Reference']})));
+        await Promise.all(user_details.map((data) => {
+            const uid = nanoid(10);
+            collection.doc(uid).set({customerId: data['Customer Number'], 
+            loanReference: data['Loan Reference'], uid})
+        }));
         // user full details
         const collection_details = admin.firestore().collection(`${name}_week_${count}_customer_details`);
-        await Promise.all(datas.map((data) => collection_details.add(data)));
+        await Promise.all(user_details.map((data) => {
+            const uid = nanoid(10);
+            collection_details.doc().set({
+            ...data,
+            uid
+            })
+        }));
         
         res.status(200).send({message: 'Succefully added all customer ids'});
        
