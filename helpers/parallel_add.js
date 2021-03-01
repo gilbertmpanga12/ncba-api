@@ -2,16 +2,28 @@
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
-  
-
+const csv = require("csvtojson");
 
 async function ParallelIndividualWrites(datas,count, res, name) {
     try{
-        const collection = admin.firestore().collection(`AAA`);// ${name}_week_${count}_customer_points
-        await Promise.all(datas.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
+         let csvResults = datas;
+         const csvRows = await csv({
+            noheader:false,
+            output: "json"
+        })
+        .fromString(csvResults.data.toString());
+        const user_details = csvRows;
+        // user points
+        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        await Promise.all(user_details.map((data) => collection.doc(data['uid']).set({customerId: data['Customer Number'], 
         loanReference: data['Loan Reference']})));
+        // user full details
+        const collection_details = admin.firestore().collection(`${name}_week_${count}_customer_details`);
+        await Promise.all(datas.map((data) => collection_details.add(data)));
+        
         res.status(200).send({message: 'Succefully added all customer ids'});
-    }catch(e){
+       
+  }catch(e){
         logger.info('FAILED TO ADD CUSTOMER IDS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
@@ -41,16 +53,16 @@ async function AddWeekStates(name, datas, res) {
 }
 
 
-async function WriteCustomerDetails(datas,count, res, name) {
-    try{
-        const collection = admin.firestore().collection(`${name}_week_${count}_customer_details`);
-        await Promise.all(datas.map((data) => collection.add(data)));
-        res.status(200).send({message: 'Succefully added all customer ids'});
-    }catch(e){
-        logger.info('FAILED TO ADD CUSTOMER IDS', e);
-        res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
-    }
-}
+// async function WriteCustomerDetails(datas,count, res, name) {
+//     try{
+//         const collection = admin.firestore().collection(`${name}_week_${count}_customer_details`);
+//         await Promise.all(datas.map((data) => collection.add(data)));
+//         res.status(200).send({message: 'Succefully added all customer ids'});
+//     }catch(e){
+//         logger.info('FAILED TO ADD CUSTOMER IDS', e);
+//         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
+//     }
+// }
 
  async function RandomiseLuckyWinners(name, count, res){
     try{
@@ -146,5 +158,5 @@ async function enterGrandDraw(name, count , res){
 
 
 
-module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
+module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners,
      enterGrandDraw, clusterWeeklyLoosers, AddWeekStates};
