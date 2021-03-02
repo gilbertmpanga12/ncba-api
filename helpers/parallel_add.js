@@ -12,10 +12,12 @@ async function ParallelIndividualWrites(datas,count, res, name) {
          let csvResults = datas;
          const csvRows = await csv({
             noheader:false,
-            output: "json"
+            output: "json",
+            ignoreEmpty: true
         })
         .fromString(csvResults.data.toString());
         const user_details = csvRows;
+     
         let user_details_length = user_details.length;
         let counter_500s = 0;
         let customerPoints = firestore().batch();
@@ -25,26 +27,25 @@ async function ParallelIndividualWrites(datas,count, res, name) {
             if(remainder < 500){
                 const uid = nanoid(10);
                 const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-                customerPoints.set(collection, {customerId: user_details['Customer Number'], 
-                loanReference: user_details['Loan Reference'], uid});
-                await customerPoints.commit();// check for last
+                customerPoints.set(collection, {customerId: user_details[start]['Customer Number'], 
+                loanReference: user_details[start]['Loan Reference'], uid});
+                await customerPoints.commit();
                 break;
             }
 
             const uid = nanoid(10);
             const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-            customerPoints.set(collection, {customerId: user_details['Customer Number'], 
-            loanReference: user_details['Loan Reference'], uid});
+            customerPoints.set(collection, {customerId: user_details[start]['Customer Number'], 
+            loanReference: user_details[start]['Loan Reference'], uid});
             if(counter_500s === 500){
                 await customerPoints.commit();
+                customerPoints = firestore().batch();
                 counter_500s = 0;
                 remainder -= 500;
                 continue;
             }
             
            }
-        
-        
         
            WriteCustomerDetails(user_details, name, count, res);
        
@@ -80,9 +81,10 @@ async function AddWeekStates(name, datas, res) {
 
 async function WriteCustomerDetails(datas,name,count,res) {
     try{
-        let user_details_length = datas;
+        const user_details = datas;
+        let user_details_length = datas.length;
         let counter_500s = 0;
-        let customerDetails = firestore().batch();
+        var customerDetails = firestore().batch();
         let remainder = user_details_length;
         for(var start=0; start <= user_details_length; start++){
             counter_500s += 1;
@@ -93,12 +95,12 @@ async function WriteCustomerDetails(datas,name,count,res) {
                 await customerDetails.commit();// check for last
                 break;
             }
-
             const uid = nanoid(10);
             const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
             customerDetails.set(collection, {...user_details[start], uid});
             if(counter_500s === 500){
                 await customerDetails.commit();
+                customerDetails = firestore().batch();
                 counter_500s = 0;
                 remainder -= 500;
                 continue;
@@ -107,7 +109,7 @@ async function WriteCustomerDetails(datas,name,count,res) {
            }
         res.status(200).send({message: 'Succefully added all customer ids'});
     }catch(e){
-        logger.info('FAILED TO ADD CUSTOMER IDS', e);
+        logger.info('FAILED TO ADD CUSTOMER DETAILS', e);
         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
     }
 }
