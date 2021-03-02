@@ -4,6 +4,7 @@ const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
 const csv = require("csvtojson");
 const { nanoid } = require('nanoid');
+const { firestore } = require('firebase-admin');
 
 
 async function ParallelIndividualWrites(datas,count, res, name) {
@@ -15,24 +16,37 @@ async function ParallelIndividualWrites(datas,count, res, name) {
         })
         .fromString(csvResults.data.toString());
         const user_details = csvRows;
-        // user points
-        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
-        await Promise.all(user_details.map((data) => {
+        let user_details_length = user_details.length;
+        let counter_500s = 0;
+        let customerPoints = firestore().batch();
+        let remainder = user_details_length;
+        for(var start=0; start <= user_details_length; start++){
+            counter_500s += 1;
+            if(remainder < 500){
+                const uid = nanoid(10);
+                const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
+                customerPoints.set(collection, {customerId: user_details['Customer Number'], 
+                loanReference: user_details['Loan Reference'], uid});
+                await customerPoints.commit();// check for last
+                break;
+            }
+
             const uid = nanoid(10);
-            collection.doc(uid).set({customerId: data['Customer Number'], 
-            loanReference: data['Loan Reference'], uid})
-        }));
-        // user full details
-        const collection_details = admin.firestore().collection(`${name}_week_${count}_customer_details`);
-        await Promise.all(user_details.map((data) => {
-            const uid = nanoid(10);
-            collection_details.doc().set({
-            ...data,
-            uid
-            })
-        }));
+            const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
+            customerPoints.set(collection, {customerId: user_details['Customer Number'], 
+            loanReference: user_details['Loan Reference'], uid});
+            if(counter_500s === 500){
+                await customerPoints.commit();
+                counter_500s = 0;
+                remainder -= 500;
+                continue;
+            }
+            
+           }
         
-        res.status(200).send({message: 'Succefully added all customer ids'});
+        
+        
+           WriteCustomerDetails(user_details, name, count, res);
        
   }catch(e){
         logger.info('FAILED TO ADD CUSTOMER IDS', e);
@@ -64,16 +78,39 @@ async function AddWeekStates(name, datas, res) {
 }
 
 
-// async function WriteCustomerDetails(datas,count, res, name) {
-//     try{
-//         const collection = admin.firestore().collection(`${name}_week_${count}_customer_details`);
-//         await Promise.all(datas.map((data) => collection.add(data)));
-//         res.status(200).send({message: 'Succefully added all customer ids'});
-//     }catch(e){
-//         logger.info('FAILED TO ADD CUSTOMER IDS', e);
-//         res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
-//     }
-// }
+async function WriteCustomerDetails(datas,name,count,res) {
+    try{
+        let user_details_length = datas;
+        let counter_500s = 0;
+        let customerDetails = firestore().batch();
+        let remainder = user_details_length;
+        for(var start=0; start <= user_details_length; start++){
+            counter_500s += 1;
+            if(remainder < 500){
+                const uid = nanoid(10);
+                const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+                customerDetails.set(collection, {...user_details[start], uid});
+                await customerDetails.commit();// check for last
+                break;
+            }
+
+            const uid = nanoid(10);
+            const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+            customerDetails.set(collection, {...user_details[start], uid});
+            if(counter_500s === 500){
+                await customerDetails.commit();
+                counter_500s = 0;
+                remainder -= 500;
+                continue;
+            }
+            
+           }
+        res.status(200).send({message: 'Succefully added all customer ids'});
+    }catch(e){
+        logger.info('FAILED TO ADD CUSTOMER IDS', e);
+        res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
+    }
+}
 
  async function RandomiseLuckyWinners(name, count, res){
     try{
