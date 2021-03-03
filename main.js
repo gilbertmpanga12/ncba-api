@@ -30,4 +30,5 @@ app.use('/api',getFirebaseUser,  reports);
 app.get('/', (req, res) => res.send({message: "App works"}));
 
 
-app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
+const server = app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
+server.setTimeout(200500000);
