@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
-    enterGrandDraw,AddWeekStates} = require('../helpers/parallel_add');
+    enterGrandDraw,AddWeekStates, getJobId} = require('../helpers/parallel_add');
 const fileUpload = require('express-fileupload');
 const uploader = fileUpload({
     limits: { fileSize: 50 * 1024 * 1024 }
@@ -12,6 +12,10 @@ router.post('/add-customer-details', uploader, async (req, res, next) => {
     const name = req.body['name'];
     const count = req.body['count'];
     await ParallelIndividualWrites(customerIds, count, res, name);
+});
+
+router.get('/job/:id', (req, res) =>{
+    getJobId(req, res);
 });
 
 // router.post('/add-customer-details', async (req, res, next) => {

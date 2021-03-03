@@ -25,10 +25,10 @@ app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.json());
 app.get('/refresh-token', getFirebaseUser, (req, res) => res.status(200).json({status: true, ...req.user}));
-app.use('/api', getFirebaseUser, add_customer_numbers);
-app.use('/api',getFirebaseUser,  reports);
+app.use('/api',  add_customer_numbers);
+app.use('/api', reports);
 app.get('/', (req, res) => res.send({message: "App works"}));
 
 
 const server = app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
-server.setTimeout(200500000);
+// server.setTimeout(200500000);
