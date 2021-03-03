@@ -7,6 +7,7 @@ const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 
 let Queue = require('bull');
+const { resolveLevel } = require('bunyan');
 // Serve on PORT on Heroku and on localhost:5000 locally
 let PORT = process.env.PORT || '5000';
 // Connect to a local redis intance locally, and the Heroku-provided URL in production
@@ -25,8 +26,7 @@ async function ParallelIndividualWrites(datas,count, res, name) {
         .fromString(csvResults.data.toString());
         const user_details = csvRows;
 
-        let job = await workQueue.add({datas, count, name});
-        console.log(job.id);
+        let job = await workQueue.add({user_details, count, name});
         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
        
   }catch(e){
@@ -73,6 +73,7 @@ async function WriteCustomerPoints(datas,name,count){
                 customerPoints.set(collection, {customerId: user_details[start]['Customer Number'], 
                 loanReference: user_details[start]['Loan Reference'], uid});
                 await customerPoints.commit();
+                resolve(500);
                 break;
             }
 
