@@ -117,6 +117,7 @@ function start() {
   });
 }
 
+// minor changes
 // Initialize the clustered worker process
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
 throng({ workers, start });
