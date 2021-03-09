@@ -18,12 +18,12 @@ router.get('/job/:id', (req, res) =>{
     getJobId(req, res);
 });
 
-// router.post('/add-customer-details', async (req, res, next) => {
-//     const customerIds = req.body['payload'];
-//     const name = req.body['name'];
-//     const count = req.body['count'];
-//     await WriteCustomerDetails(customerIds, count, res, name);
-// });
+router.post('/add-customer-details', async (req, res, next) => {
+    const customerIds = req.body['payload'];
+    const name = req.body['name'];
+    const count = req.body['count'];
+    await WriteCustomerDetails(customerIds, count, res, name);
+});
 
 router.post('/randomise-lucky-winners', async (req, res, next) => {
     const name = req.body['name'];

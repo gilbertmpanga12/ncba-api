@@ -30,5 +30,5 @@ app.use('/api', reports);
 app.get('/', (req, res) => res.send({message: "App works"}));
 
 
-const server = app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
+app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
 // server.setTimeout(200500000);

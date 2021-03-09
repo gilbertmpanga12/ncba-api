@@ -3,7 +3,6 @@ let Queue = require("bull");
 const admin = require('firebase-admin');
 // const pickRandom = require('pick-random');
 const {logger} = require('./helpers/logger');
-const csv = require("csvtojson");
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
