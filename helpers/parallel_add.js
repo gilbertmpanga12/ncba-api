@@ -27,8 +27,9 @@ async function ParallelIndividualWrites(datas,count, res, name) {
         const user_details = csvRows;
 
         let job = await workQueue.add({user_details, count, name});
-        console.log(job.id);
         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
+        console.log(`Job ID ${job.id}`);
+        
        
   }catch(e){
         logger.info('FAILED TO ADD CUSTOMER IDS', e);
