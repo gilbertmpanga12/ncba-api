@@ -7,11 +7,11 @@ const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 
 let Queue = require('bull');
-const { resolveLevel } = require('bunyan');
+
 // Serve on PORT on Heroku and on localhost:5000 locally
 let PORT = process.env.PORT || '5000';
 // Connect to a local redis intance locally, and the Heroku-provided URL in production
-let REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+let REDIS_URL = process.env.HEROKU_REDIS_GOLD_TLS_URL || 'redis://127.0.0.1:6379';
 
 let workQueue = new Queue('work', REDIS_URL);
 
