@@ -30,10 +30,7 @@ function start() {
   let workQueue = new Queue('work', {redis:{
     port: 20959, 
     host: 'ec2-54-228-38-88.eu-west-1.compute.amazonaws.com', 
-    password: 'p194886f254718705bed40237ef0a6717859fb6a3c9be8e40d2c45fec926d81f8', 
-    tls: {
-      servername: 'ec2-54-228-38-88.eu-west-1.compute.amazonaws.com'
-    }}});
+    password: 'p194886f254718705bed40237ef0a6717859fb6a3c9be8e40d2c45fec926d81f8'}});
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try{
