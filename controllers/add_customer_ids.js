@@ -9,7 +9,7 @@ router.post('/add-customer-details',  async (req, res) => {
     const name = req.body['name'];
     const count = req.body['count'];
     console.log(customerIds);
-    console.log(body)
+    console.log(req.body)
     //url, count, res, name
     await ParallelIndividualWrites(customerIds, count, res, name);
 });
