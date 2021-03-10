@@ -31,4 +31,4 @@ app.use('/ncba-api/api', reports);
 app.get('/ncba-api', (req, res) => res.send({message: "App works"}));
 
 
-app.listen(process.env.PORT || port, () => console.log('Running app 🤖🤖 ' + port));
+app.listen(port, () => console.log('Running app 🤖🤖 ' + port)); // process.env.PORT
