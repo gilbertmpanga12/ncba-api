@@ -6,7 +6,7 @@ const {logger} = require('./helpers/logger');
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
-let REDIS_URL = 'redis://:p194886f254718705bed40237ef0a6717859fb6a3c9be8e40d2c45fec926d81f8@ec2-54-228-38-88.eu-west-1.compute.amazonaws.com:20959' || "redis://127.0.0.1:6379";
+let REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
@@ -27,7 +27,7 @@ admin.initializeApp({
 
 function start() {
   // Connect to the named work queue
-  let workQueue = new Queue('work', REDIS_URL);
+  let workQueue = new Queue('work', {redis: {port: 20959, host: 'ec2-54-228-38-88.eu-west-1.compute.amazonaws.com', password: 'p194886f254718705bed40237ef0a6717859fb6a3c9be8e40d2c45fec926d81f8'}});
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try{
@@ -117,7 +117,6 @@ function start() {
   });
 }
 
-// minor changes
 // Initialize the clustered worker process
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
 throng({ workers, start });
