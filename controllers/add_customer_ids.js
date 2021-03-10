@@ -4,10 +4,13 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails,
     enterGrandDraw,AddWeekStates, getJobId} = require('../helpers/parallel_add');
 
 
-router.post('/add-customer-details',  async (req, res, next) => {
+router.post('/add-customer-details',  async (req, res) => {
     const customerIds = req.body['payload'];
     const name = req.body['name'];
     const count = req.body['count'];
+    console.log(customerIds);
+    console.log(body)
+    //url, count, res, name
     await ParallelIndividualWrites(customerIds, count, res, name);
 });
 
