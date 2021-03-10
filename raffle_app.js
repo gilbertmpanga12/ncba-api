@@ -24,7 +24,7 @@ app.use(cors());
 app.use(helmet());
 app.use(limiter);
 app.use(bodyParser.json());
-app.get('/refresh-token', getFirebaseUser, (req, res) => 
+app.get('/ncba-api-refresh-token', getFirebaseUser, (req, res) => 
 res.status(200).json({status: true, ...req.user}));
 app.use('/ncba-api/api',  add_customer_numbers);
 app.use('/ncba-api/api', reports);
