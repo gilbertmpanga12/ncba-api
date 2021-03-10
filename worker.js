@@ -27,7 +27,8 @@ admin.initializeApp({
 
 function start() {
   // Connect to the named work queue
-  let workQueue = new Queue('work', {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}});
+  // {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}}
+  let workQueue = new Queue('work',REDIS_URL );
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try{

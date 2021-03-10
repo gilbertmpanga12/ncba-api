@@ -10,12 +10,14 @@ let Queue = require('bull');
 // Connect to a local redis intance locally, and the Heroku-provided URL in production
 // redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379
 let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || 'redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379';
-
-let workQueue = new Queue('work', {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}});
+// {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}}
+let workQueue = new Queue('work', REDIS_URL);
 
 async function ParallelIndividualWrites(datas,count, res, name) {
     try{
          let csvResults = datas;
+         console.log('Handsome prelae work');
+         console.log(csvResults);
          const csvRows = await csv({
             noheader:false,
             output: "json",
