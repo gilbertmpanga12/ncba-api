@@ -14,7 +14,7 @@ router.post('/add-customer-details', uploader, async (req, res, next) => {
     await ParallelIndividualWrites(customerIds, count, res, name);
 });
 
-router.get('/job/:id', (req, res) =>{
+router.post('/job', (req, res) =>{
     getJobId(req, res);
 });
 
