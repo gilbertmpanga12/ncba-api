@@ -27,7 +27,13 @@ admin.initializeApp({
 
 function start() {
   // Connect to the named work queue
-  let workQueue = new Queue('work', {redis: {port: 20959, host: 'ec2-54-228-38-88.eu-west-1.compute.amazonaws.com', password: 'p194886f254718705bed40237ef0a6717859fb6a3c9be8e40d2c45fec926d81f8'}});
+  let workQueue = new Queue('work', {
+    port: 20959, 
+    host: 'ec2-54-228-38-88.eu-west-1.compute.amazonaws.com', 
+    password: 'p194886f254718705bed40237ef0a6717859fb6a3c9be8e40d2c45fec926d81f8', 
+    tls: {
+      servername: 'ec2-54-228-38-88.eu-west-1.compute.amazonaws.com'
+    }});
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try{
@@ -117,6 +123,7 @@ function start() {
   });
 }
 
+// minor changes
 // Initialize the clustered worker process
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info
 throng({ workers, start });
