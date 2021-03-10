@@ -5,7 +5,6 @@ const {logger} = require('../helpers/logger');
 const csv = require("csvtojson");
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
-const csv = require('csv-stream');
 const request = require('request');
 const progress = require('request-progress');
 const options = {
@@ -38,9 +37,16 @@ async function ParallelIndividualWrites(url, count, res, name) {
         });
                
         }).on('end',function(data){
-         let job = await workQueue.add({payload, count, name});
-         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
-         console.log(`Job ID ${job.id}`);
+         let job = await 
+         workQueue.add({payload, count, name}).then(job => {
+            res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
+            console.log(`Job ID ${job.id}`);
+         }).catch(e => {
+             logger.info(e);
+            res.status(500).send({message: 'An error occured while queing: ' + job.id});
+         })
+         
+         
            
         })
         
