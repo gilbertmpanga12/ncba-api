@@ -6,7 +6,7 @@ const {logger} = require('./helpers/logger');
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
-let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || "redis://127.0.0.1:6379";
+let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || "redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379";
 
 // Spin up multiple processes to handle jobs to take advantage of more CPU cores
 // See: https://devcenter.heroku.com/articles/node-concurrency for more info

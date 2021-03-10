@@ -8,7 +8,8 @@ const { firestore } = require('firebase-admin');
 
 let Queue = require('bull');
 // Connect to a local redis intance locally, and the Heroku-provided URL in production
-let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || 'redis://127.0.0.1:6379';
+// redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379
+let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || 'redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379';
 
 let workQueue = new Queue('work', REDIS_URL);
 
