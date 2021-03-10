@@ -4,7 +4,7 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails,
     enterGrandDraw,AddWeekStates, getJobId} = require('../helpers/parallel_add');
 const fileUpload = require('express-fileupload');
 const uploader = fileUpload({
-    limits: { fileSize: 50 * 1024 * 1024 }
+    limits: { fileSize: 1000 * 1024 * 1024 }
 });
 
 router.post('/add-customer-details', uploader, async (req, res, next) => {
