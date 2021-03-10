@@ -5,6 +5,13 @@ const {logger} = require('../helpers/logger');
 const csv = require("csvtojson");
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
+const csv = require('csv-stream');
+const request = require('request');
+const progress = require('request-progress');
+const options = {
+  
+    columns : ['Customer Number', 'Loan Reference', 'Loan Start Date', 'Loan Repaid Date']
+}
 
 let Queue = require('bull');
 // Connect to a local redis intance locally, and the Heroku-provided URL in production
@@ -13,20 +20,30 @@ let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || 'redis://BpJqTatVLvgyUbTVT7
 // {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}}
 let workQueue = new Queue('work', REDIS_URL);
 
-async function ParallelIndividualWrites(datas,count, res, name) {
+async function ParallelIndividualWrites(url, count, res, name) {
     try{
-         let csvResults = datas;
-         const csvRows = await csv({
-            noheader:false,
-            output: "json",
-            ignoreEmpty: true
+        let payload = [];
+        const csvStream = csv.createStream(options);
+        progress(request(url)).on('progress', function (state) {
+            console.log('progress', state);
+        }).pipe(csvStream).on('error',function(err){
+                console.error(err);
+            })
+            .on('data',function(data){
+               payload.push({
+            'Customer Number': data['Customer Number'],
+            'Loan Reference': data['Loan Reference'],
+            'Loan Repaid date': data['Loan Repaid Date'],
+            'Loan Start Date': data['Loan Start Date']
+        });
+               
+        }).on('end',function(data){
+         let job = await workQueue.add({payload, count, name});
+         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
+         console.log(`Job ID ${job.id}`);
+           
         })
-        .fromString(csvResults.data.toString());
-        const user_details = csvRows;
-
-        let job = await workQueue.add({user_details, count, name});
-        res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
-        console.log(`Job ID ${job.id}`);
+        
         
        
   }catch(e){
