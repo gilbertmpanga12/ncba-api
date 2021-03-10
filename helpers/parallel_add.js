@@ -2,7 +2,7 @@
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
-const csv = require("csvtojson");
+const csv = require("csv-stream");
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 const request = require('request');
