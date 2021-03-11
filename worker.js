@@ -43,99 +43,99 @@ function start() {
     const count = 8;
         console.log('PARMAS ****', {url, name, count})
         let payload = [];
-        // const csvStream = csv.createStream(options);
-        // progress(request(url)).on('progress', function (state) {
-        //     console.log('progress', state);
-        // }).pipe(csvStream).on('error',function(err){
-        //         console.error(err);
-        //     })
-        //     .on('data',function(data){
-        //        payload.push({
-        //     'Customer Number': data['Customer Number'],
-        //     'Loan Reference': data['Loan Reference'],
-        //     'Loan Repaid date': data['Loan Repaid Date'],
-        //     'Loan Start Date': data['Loan Start Date']
-        // });
+        const csvStream = csv.createStream(options);
+        progress(request(url)).on('progress', function (state) {
+            console.log('progress', state);
+        }).pipe(csvStream).on('error',function(err){
+                console.error(err);
+            })
+            .on('data',function(data){
+               payload.push({
+            'Customer Number': data['Customer Number'],
+            'Loan Reference': data['Loan Reference'],
+            'Loan Repaid date': data['Loan Repaid Date'],
+            'Loan Start Date': data['Loan Start Date']
+        });
                
-        // }).on('end',function(data){
-        // let progress_details = 0;
-        // let progress_points = 0;
-        // // USER POINTS
-        // const user_points = payload;
-        // let user_points_length = user_points.length;
-        // let counter_500s = 0;
-        // let customerPoints = firestore().batch();
-        // let remainder = user_points_length;
-        // for(var start=0; start <= user_points_length; start++){
-        //     counter_500s += 1;
-        //     if(remainder < 500){
-        //         const uid = nanoid(10);
-        //         const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-        //         customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
-        //         loanReference: user_points[start]['Loan Reference'], uid});
-        //         await customerPoints.commit();
-        //         // final increments
-        //         progress_points = 50;
-        //         job.progress(progress_points);
-        //         break;
-        //     }
+        }).on('end',function(data){
+        let progress_details = 0;
+        let progress_points = 0;
+        // USER POINTS
+        const user_points = payload;
+        let user_points_length = user_points.length;
+        let counter_500s = 0;
+        let customerPoints = firestore().batch();
+        let remainder = user_points_length;
+        for(var start=0; start <= user_points_length; start++){
+            counter_500s += 1;
+            if(remainder < 500){
+                const uid = nanoid(10);
+                const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
+                customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
+                loanReference: user_points[start]['Loan Reference'], uid});
+                await customerPoints.commit();
+                // final increments
+                progress_points = 50;
+                job.progress(progress_points);
+                break;
+            }
 
-        //     const uid = nanoid(10);
-        //     const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-        //     customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
-        //     loanReference: user_points[start]['Loan Reference'], uid});
-        //     if(counter_500s === 500){
-        //         await customerPoints.commit();
-        //         customerPoints = firestore().batch();
-        //         counter_500s = 0;
-        //         remainder -= 500;
-        //         // minor increments
-        //         progress_points += 1;
-        //         job.progress(progress_points);
-        //         continue;
-        //     }
-        // }
+            const uid = nanoid(10);
+            const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
+            customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
+            loanReference: user_points[start]['Loan Reference'], uid});
+            if(counter_500s === 500){
+                await customerPoints.commit();
+                customerPoints = firestore().batch();
+                counter_500s = 0;
+                remainder -= 500;
+                // minor increments
+                progress_points += 1;
+                job.progress(progress_points);
+                continue;
+            }
+        }
 
-        // // USER DETAILS
-        // const user_details = payload;
-        // let user_details_length = user_details.length;
-        // let counter_points_500s = 0;
-        // var customerDetails = firestore().batch();
-        // let remainder_details = user_details_length;
-        // for(var start=0; start <= user_details_length; start++){
-        //     counter_points_500s += 1;
-        //     if(remainder_details < 500){
-        //         const uid = nanoid(10);
-        //         const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-        //         customerDetails.set(collection, {...user_details[start], uid});
-        //         await customerDetails.commit();// check for last
-        //         // final increments
-        //         progress_details = 50;
-        //         job.progress(progress_details);
-        //         break;
-        //     }
-        //     const uid = nanoid(10);
-        //     const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-        //     customerDetails.set(collection, {...user_details[start], uid});
-        //     if(counter_points_500s === 500){
-        //         await customerDetails.commit();
-        //         customerDetails = firestore().batch();
-        //         counter_points_500s = 0;
-        //         remainder_details -= 500;
-        //         // minor increments
-        //         progress_details += 1;
-        //         job.progress(progress_details);
-        //         continue;
-        //     }
+        // USER DETAILS
+        const user_details = payload;
+        let user_details_length = user_details.length;
+        let counter_points_500s = 0;
+        var customerDetails = firestore().batch();
+        let remainder_details = user_details_length;
+        for(var start=0; start <= user_details_length; start++){
+            counter_points_500s += 1;
+            if(remainder_details < 500){
+                const uid = nanoid(10);
+                const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+                customerDetails.set(collection, {...user_details[start], uid});
+                await customerDetails.commit();// check for last
+                // final increments
+                progress_details = 50;
+                job.progress(progress_details);
+                break;
+            }
+            const uid = nanoid(10);
+            const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+            customerDetails.set(collection, {...user_details[start], uid});
+            if(counter_points_500s === 500){
+                await customerDetails.commit();
+                customerDetails = firestore().batch();
+                counter_points_500s = 0;
+                remainder_details -= 500;
+                // minor increments
+                progress_details += 1;
+                job.progress(progress_details);
+                continue;
+            }
             
-        //    }
+           }
 
-        //   var final_progress = progress_details + progress_points;
-        //   if(final_progress === 100){
-        //     job.progress(final_progress);
-        //   }
+          var final_progress = progress_details + progress_points;
+          if(final_progress === 100){
+            job.progress(final_progress);
+          }
            
-        // });
+        });
        
 
     }catch(e){
