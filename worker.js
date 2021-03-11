@@ -88,7 +88,6 @@ function start() {
           batchArrayDetails.push(firestore().batch());
           let operationCounter = 0;
           let batchIndex = 0;
-          
           documentSnapshotArray.forEach((csv_doc) => {
             const uid = nanoid(10);
             const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
