@@ -58,7 +58,6 @@ const count = 8;
         let counter_500s = 0;
         // let customerPoints = firestore().batch();
         let remainder = user_points_length;
-        console.log('user ppints', user_points, user_points_length)
         for(var start=1; start <= user_points_length; start++){
             counter_500s += 1;
             // if(remainder < 500){
@@ -83,46 +82,46 @@ const count = 8;
             }
         }
 
-        // USER DETAILS
-        const user_details = payload;
-        let user_details_length = user_details.length;
-        let counter_points_500s = 0;
+        // // USER DETAILS
+        // const user_details = payload;
+        // let user_details_length = user_details.length;
+        // let counter_points_500s = 0;
       
-        let remainder_details = user_details_length;
-        for(var start=1; start <= user_details_length; start++){
-            counter_points_500s += 1;
-            // if(remainder_details < 500){
-            //     console.log('index', start)
-            //     console.log( {customerNumber:user_details[remainder_details]});
-            //     // let remainder_count =remainder_details;
-            //     // while(remainder_details < 500){
-            //     //     console.log( {customerNumber:user_details[remainder_details]['Customer Number']});
-            //     //     remainder_details++;
-            //     //     progress_details = 50;
+        // let remainder_details = user_details_length;
+        // for(var start=1; start <= user_details_length; start++){
+        //     counter_points_500s += 1;
+        //     // if(remainder_details < 500){
+        //     //     console.log('index', start)
+        //     //     console.log( {customerNumber:user_details[remainder_details]});
+        //     //     // let remainder_count =remainder_details;
+        //     //     // while(remainder_details < 500){
+        //     //     //     console.log( {customerNumber:user_details[remainder_details]['Customer Number']});
+        //     //     //     remainder_details++;
+        //     //     //     progress_details = 50;
                    
-            //     // }
-            //     progress_details = 50;
-            //     break;
+        //     //     // }
+        //     //     progress_details = 50;
+        //     //     break;
                
                
-            // }
-           console.log({...user_details[start]});
-            if(counter_points_500s === 500){
-               console.log('am called honey bee')
-                counter_points_500s = 0;
-                remainder_details -= 500;
-                // minor increments
-                progress_details += 1;
-                // job.progress(progress_details);
-                continue;
-            }
+        //     // }
+        //    console.log({...user_details[start]});
+        //     if(counter_points_500s === 500){
+        //        console.log('am called honey bee')
+        //         counter_points_500s = 0;
+        //         remainder_details -= 500;
+        //         // minor increments
+        //         progress_details += 1;
+        //         // job.progress(progress_details);
+        //         continue;
+        //     }
             
-           }
+        //    }
 
-          var final_progress = progress_details + progress_points;
-          if(final_progress === 100){
-              console.log('dones progress')
-            // job.progress(final_progress);
-          }
+        //   var final_progress = progress_details + progress_points;
+        //   if(final_progress === 100){
+        //       console.log('dones progress')
+        //     // job.progress(final_progress);
+        //   }
 
     })

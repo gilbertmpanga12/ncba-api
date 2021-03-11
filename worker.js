@@ -43,7 +43,7 @@ function start() {
   workQueue.process(maxJobsPerWorker, async (job) => {
     try{
         // const {url, name, count} = job.data;
-        const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2Flite.csv?alt=media&token=a6eb526c-97ea-48e8-8480-f0fd060fc43c';
+        const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411998226_Test%20file%208.csv?alt=media&token=bb9cac79-b72c-4fbf-9d1f-005491c79f53';
         const name = 'Holla';
         const count = 8;
         let datas = [];
@@ -65,82 +65,36 @@ function start() {
         });
                
         }).on('end',function(data){
-            let progress_details = 0;
-            let progress_points = 0;
-            // USER POINTS
-            const user_points = datas;
-            let user_points_length = user_points.length;
-            let counter_500s = 0;
+            // let points_500 = 500;
+            let counter_break = 0;
+            let all_count_length = datas.length;
             let customerPoints = firestore().batch();
-            let remainder = user_points_length;
-            for(var start=1; start <= user_points_length; start++){
-                counter_500s += 1;
-                if(remainder < 500){
+            let customerDetails = firestore().batch();
+            datas.forEach(customer_data => {
+                counter_break += 1;
+                if(counter_break === 500){
+                    const payload = datas.splice(counter_break, all_count_length);
+                    payload.forEach(user_data => {
                     const uid = nanoid(10);
-                    const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-                    customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
-                    loanReference: user_points[start]['Loan Reference'], uid});
+
+                    firestore().collection(`${name}_week_${count}_customer_points`).doc(uid); // points
+                    customerPoints.set(collection, {customerId: user_data['Customer Number'], 
+                    loanReference: user_data['Loan Reference'], uid});
+
+                    firestore().collection(`${name}_week_${count}_customer_details`).doc(uid); // details
+                    customerDetails.set(collection, {...user_data, uid});
+
+                    });
                     customerPoints.commit();
-                    // final increments
-                    progress_points = 50;
-                    job.progress(progress_points);
-                    break;
-                }
-    
-                const uid = nanoid(10);
-                const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-                customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
-                loanReference: user_points[start]['Loan Reference'], uid});
-                if(counter_500s === 500){
-                    customerPoints.commit();
-                    customerPoints = firestore().batch();
-                    counter_500s = 0;
-                    remainder -= 500;
-                    // minor increments
-                    progress_points += 1;
-                    job.progress(progress_points);
-                    continue;
-                }
-            }
-    
-            // USER DETAILS
-            const user_details = datas;
-            let user_details_length = datas.length;
-            let counter_points_500s = 0;
-            var customerDetails = firestore().batch();
-            let remainder_details = user_details_length;
-            for(var start=1; start <= user_details_length; start++){
-                counter_points_500s += 1;
-                if(remainder_details < 500){
-                    const uid = nanoid(10);
-                    const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-                    customerDetails.set(collection, {...user_details[start], uid});
-                    customerDetails.commit();// check for last
-                    // final increments
-                    progress_details = 50;
-                    job.progress(progress_details);
-                    break;
-                }
-                const uid = nanoid(10);
-                const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-                customerDetails.set(collection, {...user_details[start], uid});
-                if(counter_points_500s === 500){
                     customerDetails.commit();
+                    customerPoints = firestore().batch();
                     customerDetails = firestore().batch();
-                    counter_points_500s = 0;
-                    remainder_details -= 500;
-                    // minor increments
-                    progress_details += 1;
-                    job.progress(progress_details);
-                    continue;
+                    counter_break = 0;
+                    // final increments
+                    // progress_points = 50;
+                    //job.progress(progress_points);
                 }
-                
-               }
-    
-              var final_progress = progress_details + progress_points;
-              if(final_progress === 100){
-                job.progress(final_progress);
-              }
+            });
         });
        
 
