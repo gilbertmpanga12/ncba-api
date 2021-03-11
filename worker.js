@@ -81,13 +81,14 @@ function start() {
         })
         .on("end", async function (data) {
           const documentSnapshotArray = datas;
+          const total_count = datas.length;
           const batchArrayPoints = [];
           const batchArrayDetails = [];
           batchArrayPoints.push(firestore().batch());
           batchArrayDetails.push(firestore().batch());
           let operationCounter = 0;
           let batchIndex = 0;
-
+          
           documentSnapshotArray.forEach((csv_doc) => {
             const uid = nanoid(10);
             const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
@@ -97,6 +98,7 @@ function start() {
             loanReference: csv_doc['Loan Reference'], uid});
             batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc, uid});
             operationCounter++;
+            job.progress(`${operationCounter}/${total_count}`);
 
             if (operationCounter === 499) {
               batchArrayPoints.push(firestore().batch());
@@ -108,6 +110,7 @@ function start() {
 
           batchArrayPoints.forEach(async (batch) => await batch.commit());
           batchArrayDetails.forEach(async (batch) => await batch.commit());
+          job.progress(`${total_count}/${total_count}`); // done
         });
     } catch (e) {
       logger.info("WORKER ERROR", e);
