@@ -53,15 +53,7 @@ function start() {
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
-      // const {url, name, count} = job.data;
-      const url =
-        "https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411998226_Test%20file%208.csv?alt=media&token=bb9cac79-b72c-4fbf-9d1f-005491c79f53";
-      const name = "Holla";
-      const count = 8;
-      let datas = [];
-      // const name = job.data['name'];
-      // const count = job.data['count'];
-      // const datas = job.data['user_details'];
+      const {url, name, count} = job.data;
       const csvStream = csv.createStream(options);
       progress(request(url))
         .on("progress", function (state) {

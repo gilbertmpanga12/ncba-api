@@ -1,13 +1,11 @@
 const {Router} = require('express');
 const router = Router();
-const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails, 
+const {ParallelIndividualWrites, RandomiseLuckyWinners,
     enterGrandDraw,AddWeekStates, getJobId} = require('../helpers/parallel_add');
 
 
 router.post('/add-customer-details',  async (req, res) => {
-    const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411587705_Test%20file%208.csv?alt=media&token=41f001fa-5bff-4d5a-9fca-d4f12fde17dd';
-    const name = 'Holla';
-    const count = 8;
+    const {url, name, count} = req.body;
     ParallelIndividualWrites(url, count, res, name);
 });
 
