@@ -222,7 +222,7 @@ async function getJobId(req, res){
       let state = await job.getState();
       let progress = job._progress;
       let reason = job.failedReason;
-      res.json({ id, state, progress, reason });
+      res.json({ jobId, state, progress, reason });
     }
   }
 
