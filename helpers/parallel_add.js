@@ -39,6 +39,7 @@ async function ParallelIndividualWrites(url, count, res, name) {
         });
                
         }).on('end',function(data){
+            console.log(payload.length);
          workQueue.add({payload, count, name}).then(job => {
             res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
             console.log(`Job ID ${job.id}`);
