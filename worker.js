@@ -73,7 +73,7 @@ function start() {
                 const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
                 customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
                 loanReference: user_points[start]['Loan Reference'], uid});
-                await customerPoints.commit();
+                customerPoints.commit().then(e => console.log(e));
                 // final increments
                 progress_points = 50;
                 job.progress(progress_points);
@@ -85,7 +85,7 @@ function start() {
             customerPoints.set(collection, {customerId: user_points[start]['Customer Number'], 
             loanReference: user_points[start]['Loan Reference'], uid});
             if(counter_500s === 500){
-                await customerPoints.commit();
+               customerPoints.commit().then(e => console.log(e));
                 customerPoints = firestore().batch();
                 counter_500s = 0;
                 remainder -= 500;
@@ -108,7 +108,7 @@ function start() {
                 const uid = nanoid(10);
                 const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
                 customerDetails.set(collection, {...user_details[start], uid});
-                await customerDetails.commit();// check for last
+                customerDetails.commit().then(e => console.log(e));// check for last
                 // final increments
                 progress_details = 50;
                 job.progress(progress_details);
@@ -118,7 +118,7 @@ function start() {
             const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
             customerDetails.set(collection, {...user_details[start], uid});
             if(counter_points_500s === 500){
-                await customerDetails.commit();
+                customerDetails.commit().then(e => console.log(e));
                 customerDetails = firestore().batch();
                 counter_points_500s = 0;
                 remainder_details -= 500;
