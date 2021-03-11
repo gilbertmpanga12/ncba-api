@@ -121,6 +121,7 @@ function start() {
 
           documentSnapshotArray.forEach((csv_doc) => {
             const documentData = csv_doc;
+            console.log(documentData);
             const uid = nanoid(10);
             batchArrayPoints[batchIndex].set(uid, {customerId: documentData['Customer Number'],
             loanReference: documentData['Loan Reference'], uid});
