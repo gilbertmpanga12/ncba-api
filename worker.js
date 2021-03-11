@@ -74,16 +74,15 @@ function start() {
                 counter_break += 1;
                 if(counter_break === 500){
                     const payload = datas.splice(counter_break, all_count_length);
-                    console.log(payload)
                     payload.forEach(user_data => {
                     const uid = nanoid(10);
-
-                    firestore().collection(`${name}_week_${count}_customer_points`).doc(uid); // points
-                    customerPoints.set(collection, {customerId: user_data['Customer Number'], 
+                    console.log(user_data)
+                    const points =  firestore().collection(`${name}_week_${count}_customer_points`).doc(uid); // points
+                    customerPoints.set(points, {customerId: user_data['Customer Number'], 
                     loanReference: user_data['Loan Reference'], uid});
 
-                    firestore().collection(`${name}_week_${count}_customer_details`).doc(uid); // details
-                    customerDetails.set(collection, {...user_data, uid});
+                    const details = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid); // details
+                    customerDetails.set(details, {...user_data, uid});
 
                     });
                     customerPoints.commit();
