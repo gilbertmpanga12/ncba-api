@@ -21,6 +21,8 @@ let workQueue = new Queue('work', {redis: {port: 6379, host: '127.0.0.1', passwo
 
 async function ParallelIndividualWrites(url, count, res, name) {
     try{
+        console.log('*********************')
+        console.log(url, count, name);
         let payload = [];
         const csvStream = csv.createStream(options);
         progress(request(url)).on('progress', function (state) {
