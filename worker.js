@@ -89,12 +89,13 @@ function start() {
           let batchIndex = 0;
 
           documentSnapshotArray.forEach((csv_doc) => {
-            const documentData = csv_doc;
-            console.log(documentData);
             const uid = nanoid(10);
-            batchArrayPoints[batchIndex].set(uid, {customerId: documentData['Customer Number'],
-            loanReference: documentData['Loan Reference'], uid});
-            batchArrayDetails[batchIndex].set(uid, {...documentData, uid});
+            const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
+            const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+            console.log(csv_doc);
+            batchArrayPoints[batchIndex].set(documentDataPoints, {customerId: csv_doc['Customer Number'],
+            loanReference: csv_doc['Loan Reference'], uid});
+            batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc, uid});
             operationCounter++;
 
             if (operationCounter === 499) {
