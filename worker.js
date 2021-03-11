@@ -31,6 +31,8 @@ function start() {
   let workQueue = new Queue('work',{redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}} );
 
   workQueue.process(maxJobsPerWorker, async (job) => {
+      console.log('WORKER')
+    console.log(job.data);
     try{
         let progress_details = 0;
         let progress_points = 0;
@@ -38,6 +40,7 @@ function start() {
         const count = job.data['count'];
         const datas = job.data['user_details'];
         // USER POINTS
+        
         const user_points = datas;
         let user_points_length = user_points.length;
         let counter_500s = 0;
