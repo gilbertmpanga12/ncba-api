@@ -34,9 +34,13 @@ function start() {
   let workQueue = new Queue('work',{redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}} );
 
   workQueue.process(maxJobsPerWorker, async (job) => {
-     
+    // const {url, name, count} = job.data;
+    // console.log('PARMAS ****', {url, name, count})
     try{
-        const {url, name, count} = job.data;
+        // const {url, name, count} = job.data;
+        const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411587705_Test%20file%208.csv?alt=media&token=41f001fa-5bff-4d5a-9fca-d4f12fde17dd';
+    const name = 'Holla';
+    const count = 8;
         console.log('PARMAS ****', {url, name, count})
         let payload = [];
         // const csvStream = csv.createStream(options);
