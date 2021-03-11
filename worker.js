@@ -53,6 +53,7 @@ function start() {
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
+      const datas = [];
       const {url, name, count} = job.data;
       const csvStream = csv.createStream(options);
       progress(request(url))
