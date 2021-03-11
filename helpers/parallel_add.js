@@ -21,42 +21,12 @@ let workQueue = new Queue('work', {redis: {port: 6379, host: '127.0.0.1', passwo
 
 async function ParallelIndividualWrites(url, count, res, name) {
     try{
-        console.log('*********************')
-        console.log(url, count, name);
-        let payload = [];
-        const csvStream = csv.createStream(options);
-        progress(request(url)).on('progress', function (state) {
-            console.log('progress', state);
-        }).pipe(csvStream).on('error',function(err){
-                console.error(err);
-            })
-            .on('data',function(data){
-               payload.push({
-            'Customer Number': data['Customer Number'],
-            'Loan Reference': data['Loan Reference'],
-            'Loan Repaid date': data['Loan Repaid Date'],
-            'Loan Start Date': data['Loan Start Date']
-        });
-               
-        }).on('end',function(data){
-            console.log('DATA =>>>>', {payload, count, name})
-         workQueue.add({payload, count, name}).then(job => {
-            res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
-            console.log(`Job ID ${job.id}`);
-         }).catch(e => {
-             logger.info(e);
-            res.status(500).send({message: 'An error occured while queing: ' + job.id});
-         })
-         
-         
-           
-        })
-        
-        
-       
+        const job =  await workQueue.add({url, count, name});
+        res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
+        console.log(`Job ID ${job.id}`);
   }catch(e){
         logger.info('FAILED TO ADD CUSTOMER IDS', e);
-        res.status(500).send({message: 'FAILED TO ADD CUSTOMER IDS'});
+        res.status(500).send({message: 'An error occured while queing'});
     }
 }
 
