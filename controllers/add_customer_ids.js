@@ -5,11 +5,11 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners, WriteCustomerDetails,
 
 
 router.post('/add-customer-details',  async (req, res) => {
-    const customerIds = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411587705_Test%20file%208.csv?alt=media&token=41f001fa-5bff-4d5a-9fca-d4f12fde17dd';
+    const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411587705_Test%20file%208.csv?alt=media&token=41f001fa-5bff-4d5a-9fca-d4f12fde17dd';
     const name = 'Holla';
     const count = 8;
     console.log(customerIds);
-    await ParallelIndividualWrites(customerIds, count, res, name);
+    await ParallelIndividualWrites(url, count, res, name);
 });
 
 router.post('/job', (req, res) =>{
