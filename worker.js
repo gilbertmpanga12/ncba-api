@@ -8,14 +8,14 @@ const { nanoid } = require("nanoid");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const options = {
-  columns: [
-    "Customer Number",
-    "Loan Reference",
-    "Loan Start Date",
-    "Loan Repaid Date",
-  ],
-};
+// const options = {
+//   columns: [
+//     "Customer Number",
+//     "Loan Reference",
+//     "Loan Start Date",
+//     "Loan Repaid Date",
+//   ],
+// };
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
 let REDIS_URL =
   process.env.HEROKU_REDIS_GOLD_URL ||
@@ -55,7 +55,7 @@ function start() {
     try {
       const datas = [];
       const {url, name, count} = job.data;
-      const csvStream = csv.createStream(options);
+      const csvStream = csv.createStream();
       progress(request(url))
         .on("progress", function (state) {
           console.log("progress", state);
