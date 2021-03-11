@@ -45,7 +45,7 @@ function start() {
     // console.log('PARMAS ****', {url, name, count})
     try{
         // const {url, name, count} = job.data;
-        const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2F1615411587705_Test%20file%208.csv?alt=media&token=41f001fa-5bff-4d5a-9fca-d4f12fde17dd';
+        const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2Flite.csv?alt=media&token=a6eb526c-97ea-48e8-8480-f0fd060fc43c';
     const name = 'Holla';
     const count = 8;
         console.log('PARMAS ****', {url, name, count})
