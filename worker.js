@@ -73,8 +73,6 @@ function start() {
           });
         })
         .on("end", async function (data) {
-          // remove useless bug
-          datas.pop(datas[0]);
           const documentSnapshotArray = datas;
           const total_count = datas.length;
           const batchArrayPoints = [];
