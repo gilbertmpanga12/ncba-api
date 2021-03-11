@@ -56,12 +56,12 @@ function start() {
         }).pipe(csvStream).on('error',function(err){
                 console.error(err);
             })
-            .on('data',function(data){
+            .on('data',function(csv_data){
                payload.push({
-            'Customer Number': data['Customer Number'],
-            'Loan Reference': data['Loan Reference'],
-            'Loan Repaid date': data['Loan Repaid Date'],
-            'Loan Start Date': data['Loan Start Date']
+            'Customer Number': csv_data['Customer Number'],
+            'Loan Reference': csv_data['Loan Reference'],
+            'Loan Repaid Date': csv_data['Loan Repaid Date'],
+            'Loan Start Date': csv_data['Loan Start Date']
         });
                
         }).on('end',function(data){
