@@ -80,42 +80,11 @@ function start() {
           });
         })
         .on("end", async function (data) {
-          // let points_500 = 500;
-          // let counter_break = 0;
-          // let all_count_length = datas.length;
-          // let customerPoints = firestore().batch();
-          // let customerDetails = firestore().batch();
-          // datas.forEach(customer_data => {
-          //     counter_break += 1;
-          //     if(counter_break === 500){
-          //         const payload = datas.splice(counter_break, all_count_length);
-          //         payload.forEach(user_data => {
-          //         const uid = nanoid(10);
-          //         console.log(user_data)
-                //   const points =  firestore().collection(`${name}_week_${count}_customer_points`).doc(uid); // points
-                //   customerPoints.set(points, {customerId: user_data['Customer Number'],
-                //   loanReference: user_data['Loan Reference'], uid});
-
-                //   const details = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid); // details
-                //   customerDetails.set(details, {...user_data, uid});
-
-          //         });
-          //         customerPoints.commit();
-          //         customerDetails.commit();
-          //         customerPoints = firestore().batch();
-          //         customerDetails = firestore().batch();
-          //         counter_break = 0;
-          //         // final increments
-          //         // progress_points = 50;
-          //         //job.progress(progress_points);
-          //     }
-          // });
-
           const documentSnapshotArray = datas;
           const batchArrayPoints = [];
           const batchArrayDetails = [];
-          batchArrayPoints.push(firestore.batch());
-          batchArrayDetails.push(firestore.batch());
+          batchArrayPoints.push(firestore().batch());
+          batchArrayDetails.push(firestore().batch());
           let operationCounter = 0;
           let batchIndex = 0;
 
@@ -129,8 +98,8 @@ function start() {
             operationCounter++;
 
             if (operationCounter === 499) {
-              batchArrayPoints.push(firestore.batch());
-              batchArrayDetails.push(firestore.batch());
+              batchArrayPoints.push(firestore().batch());
+              batchArrayDetails.push(firestore().batch());
               batchIndex++;
               operationCounter = 0;
             }
