@@ -37,6 +37,7 @@ function start() {
      
     try{
         const {url, name, count} = job.data;
+        console.log('PARMAS ****', {url, name, count})
         let payload = [];
         const csvStream = csv.createStream(options);
         progress(request(url)).on('progress', function (state) {
@@ -56,7 +57,7 @@ function start() {
         let progress_details = 0;
         let progress_points = 0;
         // USER POINTS
-        const user_points = datas;
+        const user_points = payload;
         let user_points_length = user_points.length;
         let counter_500s = 0;
         let customerPoints = firestore().batch();
@@ -92,8 +93,8 @@ function start() {
         }
 
         // USER DETAILS
-        const user_details = datas;
-        let user_details_length = datas.length;
+        const user_details = payload;
+        let user_details_length = user_details.length;
         let counter_points_500s = 0;
         var customerDetails = firestore().batch();
         let remainder_details = user_details_length;
