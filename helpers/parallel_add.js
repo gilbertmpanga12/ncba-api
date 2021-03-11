@@ -213,8 +213,8 @@ async function enterGrandDraw(name, count , res){
 
 
 async function getJobId(req, res){
-    const {id} = req.body;
-    let job = await workQueue.getJob(id);
+    const {jobId} = req.body;
+    let job = await workQueue.getJob(jobId);
   
     if (job === null) {
       res.status(404).end();
