@@ -2,9 +2,16 @@ let throng = require('throng');
 let Queue = require("bull");
 const admin = require('firebase-admin');
 // const pickRandom = require('pick-random');
+const csv = require("csv-stream");
 const {logger} = require('./helpers/logger');
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
+const request = require('request');
+const progress = require('request-progress');
+const options = {
+  
+    columns : ['Customer Number', 'Loan Reference', 'Loan Start Date', 'Loan Repaid Date']
+}
 // Connect to a local redis instance locally, and the Heroku-provided URL in production
 let REDIS_URL = process.env.HEROKU_REDIS_GOLD_URL || "redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379";
 

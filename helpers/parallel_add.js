@@ -2,15 +2,9 @@
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
-const csv = require("csv-stream");
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
-const request = require('request');
-const progress = require('request-progress');
-const options = {
-  
-    columns : ['Customer Number', 'Loan Reference', 'Loan Start Date', 'Loan Repaid Date']
-}
+
 
 let Queue = require('bull');
 // Connect to a local redis intance locally, and the Heroku-provided URL in production
