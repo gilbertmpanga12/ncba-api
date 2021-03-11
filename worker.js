@@ -74,6 +74,7 @@ function start() {
                 counter_break += 1;
                 if(counter_break === 500){
                     const payload = datas.splice(counter_break, all_count_length);
+                    console.log(payload)
                     payload.forEach(user_data => {
                     const uid = nanoid(10);
 
