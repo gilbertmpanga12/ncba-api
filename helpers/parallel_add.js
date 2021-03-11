@@ -17,10 +17,9 @@ let workQueue = new Queue('work', {redis: {port: 6379, host: '127.0.0.1', passwo
 
 async function ParallelIndividualWrites(url, count, res, name) {
     try{
-        console.log({url, count, name});
         const job =  await workQueue.add({url, count, name});
-        res.status(200).send({message: 'Succefully added all customer ids: ' + job.id});
-        console.log(`Job ID ${job.id}`);
+        res.status(200).send({message: 'Succefully added all customer ids: ' + job.id, jobId: job.id});
+        logger.info(`Job ID ${job.id}`);
   }catch(e){
         logger.info('FAILED TO ADD CUSTOMER IDS', e);
         res.status(500).send({message: 'An error occured while queing'});
