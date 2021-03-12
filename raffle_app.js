@@ -16,7 +16,7 @@ admin.initializeApp({
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 300 // limit each IP to 100 requests per windowMs
+    max: 1000 // limit each IP to 100 requests per windowMs
 });
 
 const app = express();
@@ -31,4 +31,4 @@ app.use('/ncba-api/api', reports);
 app.get('/ncba-api', (req, res) => res.send({message: "App works"}));
 
 
-app.listen(port, () => console.log('Running app 🤖🤖 ' + port)); // process.env.PORT
+app.listen(port, () => console.log('Running app 🤖🤖 ' + port));

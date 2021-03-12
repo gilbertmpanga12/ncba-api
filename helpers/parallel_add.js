@@ -1,19 +1,15 @@
 
+require('dotenv');
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
 const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 
-
 let Queue = require('bull');
-// Connect to a local redis intance locally, and the Heroku-provided URL in production
-// redis://BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW@127.0.0.1:6379
-let REDIS_URL =
-  process.env.HEROKU_REDIS_GOLD_URL ||
-  "redis://127.0.0.1:6379";
-// {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}}
-let workQueue = new Queue('work', {redis: {port: 6379, host: '127.0.0.1', password: 'BpJqTatVLvgyUbTVT7Jv4BZLDyX6gaTERTuhlkTBXg3EV8MWjRk5uZI5EzRzR5OoW37lb+ONV8Ev9GOW'}});
+
+let workQueue = new Queue('work', {redis: {port: 6379, 
+    host: '127.0.0.1', password: process.env.REDIS_PASSWORD}});
 
 async function ParallelIndividualWrites(url, count, res, name) {
     try{
