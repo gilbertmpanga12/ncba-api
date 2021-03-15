@@ -10,7 +10,6 @@ const add_customer_numbers = require('./controllers/add_customer_ids');
 const reports = require('./controllers/reports');
 const {getFirebaseUser} = require('./helpers/firebaseSecurity');
 
-console.log(process.env.SERVICE_ACCOUNT)
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });

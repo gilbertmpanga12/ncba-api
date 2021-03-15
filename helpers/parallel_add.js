@@ -1,5 +1,4 @@
-
-require('dotenv');
+require('dotenv').config();
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');

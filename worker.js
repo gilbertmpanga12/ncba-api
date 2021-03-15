@@ -1,5 +1,5 @@
 
-require('dotenv');
+require('dotenv').config();
 let throng = require("throng");
 let Queue = require("bull");
 const admin = require("firebase-admin");
