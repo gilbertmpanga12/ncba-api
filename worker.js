@@ -37,11 +37,12 @@ function start() {
       const csvStream = csv.createStream();
       progress(request(url))
         .on("progress", function (state) {
-          console.log("progress", state);
+          logger.log("progress", state);
         })
         .pipe(csvStream)
         .on("error", function (err) {
-          console.error(err);
+          logger.error(err);
+          job.progress('Oops an internal error occured, please contact support');
         })
         .on("data", function (csv_data) {
           if(csv_data["Customer Number"] && 

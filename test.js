@@ -28,8 +28,8 @@ var counter = [];
    
 // })
 
-const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2Flite.csv?alt=media&token=a6eb526c-97ea-48e8-8480-f0fd060fc43c';
-//const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2Ferror.csv?alt=media&token=f0251dc2-11d8-4f50-95d7-520aef6b858a'
+//const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2Flite.csv?alt=media&token=a6eb526c-97ea-48e8-8480-f0fd060fc43c';
+const url = 'https://firebasestorage.googleapis.com/v0/b/wholesaleduuka-418f1.appspot.com/o/NCBA%2Ferror.csv?alt=media&token=f0251dc2-11d8-4f50-95d7-520aef6b858a'
 const name = 'Holla';
 const count = 8;
     console.log('PARMAS ****', {url, name, count})
@@ -38,7 +38,8 @@ const count = 8;
     progress(request(url)).on('progress', function (state) {
         console.log('progress', state);
     }).pipe(csvStream).on('error',function(err){
-            console.error(err);
+        console.log('inside error')
+            // console.error(err);
         })
         .on('data',function(csv_data){
             if(csv_data["Customer Number"] && 
