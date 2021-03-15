@@ -26,7 +26,7 @@ function start() {
       port: 6379,
       host: "127.0.0.1",
       password:
-        process.env.REDIS_PASSWORD,
+        process.env.REDIS_PASSWORD_RAFFLE,
     },
   });
 
