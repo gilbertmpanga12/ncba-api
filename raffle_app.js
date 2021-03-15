@@ -29,7 +29,7 @@ app.get('/ncba-api/refresh-token', getFirebaseUser, (req, res) =>
 res.status(200).json({status: true, ...req.user}));
 app.use('/ncba-api/api',  add_customer_numbers);
 app.use('/ncba-api/api', reports);
-app.get('/ncba-api', (req, res) => res.send({message: "App works"}));
+app.get('/ncba-api', (req, res) => res.send({message: "Raffle app active"}));
 
 
 app.listen(port, () => console.log('Running app 🤖🤖 ' + port));
