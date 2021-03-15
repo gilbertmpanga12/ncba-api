@@ -78,8 +78,8 @@ function start() {
             const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
             const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
             batchArrayPoints[batchIndex].set(documentDataPoints, {customerId: csv_doc['Customer Number'],
-            loanReference: csv_doc['Loan Reference'], uid});
-            batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc, uid});
+            loanReference: csv_doc['Loan Reference']});
+            batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
             operationCounter++;
             job.progress(`${operationCounter}/${total_count}`);
 
