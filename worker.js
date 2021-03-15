@@ -44,12 +44,23 @@ function start() {
           console.error(err);
         })
         .on("data", function (csv_data) {
-          datas.push({
-            "Customer Number": csv_data["Customer Number"],
-            "Loan Reference": csv_data["Loan Reference"],
-            "Loan Repaid Date": csv_data["Loan Repaid Date"],
-            "Loan Start Date": csv_data["Loan Start Date"],
-          });
+          if(csv_data["Customer Number"] && 
+          csv_data["Loan Reference"] && 
+          csv_data["Loan Repaid Date"] 
+          && csv_data["Loan Start Date"]){ // omit empty customer _ids
+            datas.push({
+              "Customer Number": csv_data["Customer Number"],
+              "Loan Reference": csv_data["Loan Reference"],
+              "Loan Repaid Date": csv_data["Loan Repaid Date"],
+              "Loan Start Date": csv_data["Loan Start Date"],
+            });
+          }else{
+            const eror_message = `Please check your csv file for missing 
+            blank customer numbers, or empty fields and 
+            also ensure column names are correctly named`;
+            job.progress(eror_message);
+            throw Error(eror_message);
+          }
         })
         .on("end", async function (data) {
           const documentSnapshotArray = datas;
@@ -61,7 +72,7 @@ function start() {
           let operationCounter = 0;
           let batchIndex = 0;
           documentSnapshotArray.forEach((csv_doc) => {
-            const uid = nanoid(10);
+            const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
             logger.info(csv_doc);
             const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
             const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
