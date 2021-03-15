@@ -1,4 +1,3 @@
-require('dotenv');
 const express = require('express');
 const admin = require('firebase-admin');
 const serviceAccount = require('./service-account.json');
@@ -13,7 +12,7 @@ const {getFirebaseUser} = require('./helpers/firebaseSecurity');
 
 console.log(process.env.SERVICE_ACCOUNT)
 admin.initializeApp({
-    credential: admin.credential.cert(JSON.parse()),
+    credential: admin.credential.cert(serviceAccount),
 });
 
 const limiter = rateLimit({
