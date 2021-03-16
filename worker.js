@@ -8,7 +8,7 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const {writePointsAndDetails, deleteColletions} = require('./helpers/parallel_add');
+
 
 let workers = process.env.WEB_CONCURRENCY || 2;
 
