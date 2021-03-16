@@ -13,24 +13,21 @@ async function printPdf(fonts, docDefinition, res){
 		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
 		const gcsname = `${uuidv4()}.pdf`;
 		const file = bucket.file(gcsname);
-		const stream = file.createWriteStream({
+		let stream = file.createWriteStream({
 			metadata: {
 				contentType: 'application/pdf'
 			}
 		});
-	    pdfDoc.pipe(stream);
-		stream.on('error', (err) => {
+	    pdfDoc.pipe(stream).on('error', (err) => {
 			console.log(err);
-		});
-		stream.on('finish', () => {
+		}).on('finish', () => {
 			file.getSignedUrl(expirydate).then(url => {
-		 const pdfUrl = url[0];
-		 console.log(pdfUrl)
-		 res.status(200).json({pdfUrl: pdfUrl});
-		 pdfDoc.end();
+		    const pdfUrl = url[0];
+			stream = undefined;
+		     res.status(200).json({pdfUrl: pdfUrl});
 			});
 		});
-		
+		pdfDoc.end();
 	}catch(e){
 		console.log('PDF CREATION ERROR', e);
 		res.status(500).send({message: e});
