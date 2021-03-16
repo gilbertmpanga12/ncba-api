@@ -241,6 +241,7 @@ async function writePointsAndDetails(datas, name, count, job){
 
 
 async function deleteColletions(name, count, job){
+    console.log(name,count,job)
     let documentSnapshotArrayPoints = await firestore().collection(`${name}_week_${count}_customer_points`).listDocuments();
     let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
     const batchArrayPoints = [];
