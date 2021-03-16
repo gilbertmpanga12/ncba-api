@@ -8,7 +8,6 @@ const expirydate = {action: 'read', expires: '03-09-2500'};
 
 async function printPdf(fonts, docDefinition, res){
 	try{
-		console.log('called pdf genertaor');
 		const printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
 		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');

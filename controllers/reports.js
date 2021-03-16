@@ -63,12 +63,13 @@ var fonts = {
 
 router.post('/generate-pdf', async (req,res) => {
 	const randomisedWinners = req.body;
+	console.log(randomisedWinners);
 	docDefinition.content[0].text = 'Randomised 10 Lucky Winners';
 	
 	randomisedWinners.forEach(customer => {
 		docDefinition.content[1].table.body.push(Object.values(customer));
 	});
-	console.log(docDefinition);
+	console.log(docDefinition.content[1].table.body)
 	await printPdf(fonts, docDefinition, res);
     
 });
