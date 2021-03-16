@@ -282,7 +282,7 @@ async function deleteColletions(name, count, job){
     
       batchArrayPoints.forEach(async (batch) => await batch.commit());
       batchArrayDetails.forEach(async (batch) => await batch.commit());
-      job.progress(`${total_count}/${total_count}`);
+      job.progress(`${total_count_details}/${total_count_points}`);
     
 }
 
