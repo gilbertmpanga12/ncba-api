@@ -8,6 +8,7 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
+const {updateWeeklyState} = require('./helpers/parallel_add');
 
 
 let workers = process.env.WEB_CONCURRENCY || 2;
@@ -110,7 +111,6 @@ async function writePointsAndDetails(datas, name, count, job){
 
 
 async function deleteColletions(name, count, job){
-  console.log(name,count,job)
   let documentSnapshotArrayPoints = await firestore().collection(`${name}_week_${count}_customer_points`).listDocuments();
   let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
   const batchArrayPoints = [];
@@ -152,6 +152,7 @@ async function deleteColletions(name, count, job){
   
     batchArrayPoints.forEach(async (batch) => await batch.commit());
     batchArrayDetails.forEach(async (batch) => await batch.commit());
+    updateWeeklyState(count, name);
     job.progress(`${total_count_details}/${total_count_points}`);
   
 }

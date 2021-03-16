@@ -207,6 +207,12 @@ async function deleteColletion(count, name){
 }
 
 
+async function updateWeeklyState(count, name){
+  await firestore().collection('all_projects')
+  .doc(name).collection('week_states').doc(`week_${count}`).update({state: false});
+
+}
+
 workQueue.on('global:completed', (jobId, result) => {
     console.log(`Job completed with result ${result}`);
   });
@@ -215,4 +221,4 @@ workQueue.on('global:completed', (jobId, result) => {
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners,
      enterGrandDraw, clusterWeeklyLoosers, 
      AddWeekStates, getJobId, ParallelIndividualWrites, 
-     WriteCustomerDetails};
+     WriteCustomerDetails, updateWeeklyState};
