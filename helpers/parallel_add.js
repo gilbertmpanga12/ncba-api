@@ -10,9 +10,9 @@ let Queue = require('bull');
 let workQueue = new Queue('work', {redis: {port: 6379, 
     host: '127.0.0.1', password: process.env.REDIS_PASSWORD_RAFFLE}});
 
-async function ParallelIndividualWrites(url, count, res, name) {
+async function ParallelIndividualWrites(url, count, res, name, operation) {
     try{
-        const job =  await workQueue.add({url, count, name});
+        const job =  await workQueue.add({url, count, name, operation});
         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id, jobId: job.id});
         logger.info(`Job ID ${job.id}`);
   }catch(e){
@@ -44,42 +44,6 @@ async function AddWeekStates(name, datas, res) {
     }
 }
 
-async function WriteCustomerPoints(datas,name,count){
-    try{
-        const user_details = datas;
-        let user_details_length = user_details.length;
-        let counter_500s = 0;
-        let customerPoints = firestore().batch();
-        let remainder = user_details_length;
-        for(var start=0; start <= user_details_length; start++){
-            counter_500s += 1;
-            if(remainder < 500){
-                const uid = nanoid(10);
-                const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-                customerPoints.set(collection, {customerId: user_details[start]['Customer Number'], 
-                loanReference: user_details[start]['Loan Reference'], uid});
-                await customerPoints.commit();
-                resolve(500);
-                break;
-            }
-
-            const uid = nanoid(10);
-            const collection = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
-            customerPoints.set(collection, {customerId: user_details[start]['Customer Number'], 
-            loanReference: user_details[start]['Loan Reference'], uid});
-            if(counter_500s === 500){
-                await customerPoints.commit();
-                customerPoints = firestore().batch();
-                counter_500s = 0;
-                remainder -= 500;
-                continue;
-            }
-            
-           }
-    }catch(e){
-        logger.info('FAILED TO ADD Customer points', e);
-    }
-}
 
 async function WriteCustomerDetails(datas,name,count) {
     try{
@@ -221,11 +185,113 @@ async function getJobId(req, res){
     }
   }
 
+async function deleteColletion(count, name){
+    let batch_points = firestore().batch();
+    let batch_details = firestore().batch();
+    firestore().collection('').listDocuments
+    firestore().collection(`${name}_week_${count}_customer_points`).listDocuments().then(val => {
+        val.map((val) => {
+            batch_points.delete(val)
+        })
+
+        batch_points.commit();
+    });
+
+    firestore().collection(`${name}_week_${count}_customer_details`).listDocuments().then(val => {
+        val.map((val) => {
+            batch_details.delete(val)
+        })
+
+        batch_details.commit();
+    });
+}
+
+
+async function writePointsAndDetails(datas, name, count, job){
+    const documentSnapshotArray = datas;
+    const total_count = datas.length;
+    const batchArrayPoints = [];
+    const batchArrayDetails = [];
+    batchArrayPoints.push(firestore().batch());
+    batchArrayDetails.push(firestore().batch());
+    let operationCounter = 0;
+    let batchIndex = 0;
+    documentSnapshotArray.forEach((csv_doc) => {
+      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+      const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
+      const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+      batchArrayPoints[batchIndex].set(documentDataPoints, {customerId: csv_doc['Customer Number'],
+      loanReference: csv_doc['Loan Reference']});
+      batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
+      operationCounter++;
+      job.progress(`${operationCounter}/${total_count}`);
+  
+      if (operationCounter === 499) {
+        batchArrayPoints.push(firestore().batch());
+        batchArrayDetails.push(firestore().batch());
+        batchIndex++;
+        operationCounter = 0;
+      }
+    });
+  
+    batchArrayPoints.forEach(async (batch) => await batch.commit());
+    batchArrayDetails.forEach(async (batch) => await batch.commit());
+    job.progress(`${total_count}/${total_count}`);
+  }
+
+
+async function deleteColletions(name, count, job){
+    let documentSnapshotArrayPoints = await firestore().collection(`${name}_week_${count}_customer_points`).listDocuments();
+    let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
+    const batchArrayPoints = [];
+    const batchArrayDetails = [];
+    batchArrayPoints.push(firestore().batch());
+    batchArrayDetails.push(firestore().batch());
+    let operationCounter = 0;
+    let batchIndex = 0;
+
+    let operationCounterDetails = 0;
+    let batchIndexDetails = 0;
+    let final_progress = "";
+    let total_count_details = documentSnapshotArrayDetails.length;
+    let total_count_points = documentSnapshotArrayPoints.length;
+
+      documentSnapshotArrayPoints.forEach((csv_doc) => {
+        batchArrayPoints[batchIndex].delete(csv_doc);
+        operationCounter++;
+        final_progress += `X${operationCounter}/${total_count_points}`;
+        job.progress(final_progress);
+        if (operationCounter === 499) {
+          batchArrayPoints.push(firestore().batch());
+          batchIndex++;
+          operationCounter = 0;
+        }
+      });
+
+      documentSnapshotArrayDetails.forEach((csv_doc) => {
+        batchArrayDetails[batchIndexDetails].delete(csv_doc);
+        operationCounterDetails++;
+        final_progress += `X${operationCounterDetails}/${total_count_details}`;
+        job.progress(final_progress);
+        if (operationCounterDetails === 499) {
+          batchArrayDetails.push(firestore().batch());
+          batchIndexDetails++;
+          operationCounterDetails = 0;
+        }
+      });
+    
+      batchArrayPoints.forEach(async (batch) => await batch.commit());
+      batchArrayDetails.forEach(async (batch) => await batch.commit());
+      job.progress(`${total_count}/${total_count}`);
+    
+}
+
 workQueue.on('global:completed', (jobId, result) => {
     console.log(`Job completed with result ${result}`);
   });
-  
 
 
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners,
-     enterGrandDraw, clusterWeeklyLoosers, AddWeekStates, getJobId, ParallelIndividualWrites, WriteCustomerDetails};
+     enterGrandDraw, clusterWeeklyLoosers, 
+     AddWeekStates, getJobId, ParallelIndividualWrites, 
+     WriteCustomerDetails, writePointsAndDetails, deleteColletions};
