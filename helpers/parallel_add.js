@@ -88,7 +88,6 @@ async function WriteCustomerDetails(datas,name,count) {
         doc.forEach(doc => {
             results.push(doc.data());
         });
-        console.log(results)
         const luckyWinners = pickRandom(results, {count: 10});
         storeRandomisedWinners(count, luckyWinners, name);
         

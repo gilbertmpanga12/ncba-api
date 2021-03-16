@@ -10,8 +10,7 @@ async function printPdf(fonts, docDefinition, res){
 	try{
 		const printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
-		
-	  const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
+		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
 		const gcsname = `${uuidv4()}.pdf`;
 		const file = bucket.file(gcsname);
 		const stream = file.createWriteStream({
@@ -19,7 +18,7 @@ async function printPdf(fonts, docDefinition, res){
 				contentType: 'application/pdf'
 			}
 		});
-	  pdfDoc.pipe(stream);
+	    pdfDoc.pipe(stream);
 		stream.on('error', (err) => {
 			console.log(err);
 		});
@@ -28,9 +27,10 @@ async function printPdf(fonts, docDefinition, res){
 		 const pdfUrl = url[0];
 		 console.log(pdfUrl)
 		 res.status(200).json({pdfUrl: pdfUrl});
+		 pdfDoc.end();
 			});
 		});
-		pdfDoc.end();
+		
 	}catch(e){
 		console.log('PDF CREATION ERROR', e);
 		res.status(500).send({message: e});
