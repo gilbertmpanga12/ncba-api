@@ -3,12 +3,12 @@ const PdfPrinter = require('pdfmake');
 const { v4: uuidv4 } = require('uuid');
 const { Parser } = require('json2csv');
 const expirydate = {action: 'read', expires: '03-09-2500'};
-
+var fs = require('fs');
 
 
 async function printPdf(fonts, docDefinition, res){
 	try{
-		const printer = new PdfPrinter(fonts);
+		let printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
 		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
 		const gcsname = `${uuidv4()}.pdf`;
@@ -20,12 +20,12 @@ async function printPdf(fonts, docDefinition, res){
 		});
 	    pdfDoc.pipe(stream).on('error', (err) => {
 			console.log(err);
-		}).on('finish', () => {
+		}).on('finish', (e) => {
 			file.getSignedUrl(expirydate).then(url => {
-		    const pdfUrl = url[0];
-			stream = undefined;
-		     res.status(200).json({pdfUrl: pdfUrl});
-			});
+				const pdfUrl = url[0];
+				res.status(200).json({pdfUrl: pdfUrl});
+				
+				});
 		});
 		pdfDoc.end();
 	}catch(e){
