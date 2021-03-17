@@ -9,6 +9,7 @@ const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
 const {updateWeeklyState} = require('./helpers/parallel_add');
+const pickRandom = require('pick-random');
 
 
 let workers = process.env.WEB_CONCURRENCY || 2;
@@ -173,70 +174,41 @@ async function deleteColletions(name, count, job){
 
 
 async function getLucky10(name, count, job){
-  let details_index = 1;
-  let points_index = 1;
-  let documentSnapshotArrayPoints = [];
+  let details_index = 0;
+  let docsReferences = [];
   let documentSnapshotArrayDetails = [];
+  let lucky_weekly_10_winners = [];
+  const details_batch = firestore().batch();
+  const points_batch = firestore().batch();
+  let progress = 0;
+  
   
   while(details_index <= count){
-    let payload = await firestore().collection(`${name}_week_${details_index}_customer_details`).get();
-    payload.forEach(doc => documentSnapshotArrayDetails.push(doc.data()));
+    docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`));
     details_index++;
   }
 
-  while(points_index <= count){
-    let payload = await firestore().collection(`${name}_week_${points_index}_customer_points`).get();
-    payload.forEach(doc => documentSnapshotArrayPoints.push(doc.data()));
-    points_index++;
-  }
+  await Promise.all(docsReferences.forEach(ref => {
+    ref.get().then(payload => {
+      payload.forEach(doc => documentSnapshotArrayDetails.push(doc.data()));
+      progress += 1;
+      job.progress(progress);
+    })
+  }));
 
+  lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
 
-  const batchArrayPoints = [];
-  const batchArrayDetails = [];
-  batchArrayPoints.push(firestore().batch());
-  batchArrayDetails.push(firestore().batch());
-  let operationCounter = 0;
-  let batchIndex = 0;
-
-  let operationCounterDetails = 0;
-  let batchIndexDetails = 0;
-  let final_progress = "";
-  let total_count_details = documentSnapshotArrayDetails.length;
-  let total_count_points = documentSnapshotArrayPoints.length;
-
-    documentSnapshotArrayPoints.forEach((csv_doc) => {
-      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
-      const points = firestore().collection(`${name}_grand_total_points`).doc(uid);
-      batchArrayPoints[batchIndex].set(points, {customerId: csv_doc['Customer Number'],
-      loanReference: csv_doc['Loan Reference']});
-      operationCounter++;
-      final_progress += `X${operationCounter}/${total_count_points}`;
-      job.progress(final_progress);
-      if (operationCounter === 499) {
-        batchArrayPoints.push(firestore().batch());
-        batchIndex++;
-        operationCounter = 0;
-      }
-    });
-
-    documentSnapshotArrayDetails.forEach((csv_doc) => {
-      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
-      const details = firestore().collection(`${name}_grand_total_details`).doc(uid);
-      batchArrayDetails[batchIndexDetails].set(details, csv_doc);
-      operationCounterDetails++;
-      final_progress += `X${operationCounterDetails}/${total_count_details}`;
-      job.progress(final_progress);
-      if (operationCounterDetails === 499) {
-        batchArrayDetails.push(firestore().batch());
-        batchIndexDetails++;
-        operationCounterDetails = 0;
-      }
-    });
+  lucky_weekly_10_winners.forEach(csv_doc => {
+    const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+    let payload = firestore().collection(`${name}_grand_total_points`).doc(uid);
+    details_batch.set(payload, csv_doc);
+    points_batch.set(payload, {customerId: csv_doc['Customer Number'],
+    loanReference: csv_doc['Loan Reference']});
+  });
+  details_batch.commit();
+  points_batch.commit();
+  job.progress(`100`);
   
-    batchArrayPoints.forEach(async (batch) => await batch.commit());
-    batchArrayDetails.forEach(async (batch) => await batch.commit());
-    updateWeeklyState(count, name);
-    job.progress(`${total_count_details}/${total_count_points}`);
   
 }
 
