@@ -201,9 +201,10 @@ async function getLucky10(name, count, job){
   
     lucky_weekly_10_winners.forEach(csv_doc => {
       const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
-      let payload = firestore().collection(`${name}_grand_total_points`).doc(uid);
-      details_batch.set(payload, csv_doc);
-      points_batch.set(payload, {customerId: csv_doc['Customer Number'],
+      let points = firestore().collection(`${name}_grand_total_points`).doc(uid);
+      let details = firestore().collection(`${name}_grand_total_details`).doc(uid);
+      details_batch.set(details, csv_doc);
+      points_batch.set(points, {customerId: csv_doc['Customer Number'],
       loanReference: csv_doc['Loan Reference']});
     });
     details_batch.commit();

@@ -193,13 +193,20 @@ async function updateWeeklyState(count, name){
 
 }
 
-async function pickLucky3(count, name, res){
+async function pickLucky3(name, res){
     try{
         let winners = [];
-        const weeklyGrand = await firestore().collection('').get();
+        const weeklyGrand = await firestore().collection(`${name}_grand_total_details`).get();
         weeklyGrand.forEach(data => winners.push({customerId: data.data()['Customer Number'], 
         loanReference: data.data()['Loan Reference']}));
         let lucky3 = pickRandom(weeklyGrand,  {count: 10});
+        await Promise.all(lucky3.forEach(csv_doc => {
+            const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+            firestore().collection(`${name}_winner3_details`).doc(uid).set(csv_doc).then(x => x.writeTime);;
+            firestore().collection(`${name}_winner3_points`).doc(uid).set({
+            customerId: csv_doc.data()['Customer Number'], 
+            loanReference:csv_doc.data()['Loan Reference']}).then(x => x.writeTime);
+        }));
         res.status(200).send({message: lucky3});
     }catch(e){
         res.status(500).send({message: 'Failed to randomise lucky 3 winners'});
