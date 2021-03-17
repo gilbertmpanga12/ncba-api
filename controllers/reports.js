@@ -63,7 +63,6 @@ var fonts = {
 
 router.post('/generate-pdf', async (req,res) => {
 	const randomisedWinners = req.body;
-	console.log('my rnadomised winnes', randomisedWinners);
 	docDefinition.content[1].table.body = [
 		[ 'Customer ID', 'Points']
 	];

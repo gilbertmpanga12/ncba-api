@@ -2,7 +2,7 @@ const firebase = require('firebase-admin');
 const PdfPrinter = require('pdfmake');
 const { Parser } = require('json2csv');
 const expirydate = {action: 'read', expires: '03-09-2500'};
-const nanoid = require('nanoid');
+const {nanoid} = require('nanoid');
 
 
 async function printPdf(fonts, docDefinition, res){
