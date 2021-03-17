@@ -193,6 +193,20 @@ async function updateWeeklyState(count, name){
 
 }
 
+async function pickLucky3(count, name, res){
+    try{
+        let winners = [];
+        const weeklyGrand = await firestore().collection('').get();
+        weeklyGrand.forEach(data => winners.push({customerId: data.data()['Customer Number'], 
+        loanReference: data.data()['Loan Reference']}));
+        let lucky3 = pickRandom(weeklyGrand,  {count: 10});
+        res.status(200).send({message: lucky3});
+    }catch(e){
+        res.status(500).send({message: 'Failed to randomise lucky 3 winners'});
+        logger.info('Failed to pick lucky 3', e);
+    }
+}
+
 workQueue.on('global:completed', (jobId, result) => {
     console.log(`Job completed with result ${result}`);
   });
@@ -201,4 +215,4 @@ workQueue.on('global:completed', (jobId, result) => {
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners,
      enterGrandDraw, clusterWeeklyLoosers, 
      AddWeekStates, getJobId, ParallelIndividualWrites, 
-     WriteCustomerDetails, updateWeeklyState};
+     WriteCustomerDetails, updateWeeklyState, pickLucky3};

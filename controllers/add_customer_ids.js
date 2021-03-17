@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 const {ParallelIndividualWrites, RandomiseLuckyWinners,
-    enterGrandDraw,AddWeekStates, getJobId} = require('../helpers/parallel_add');
+    enterGrandDraw,AddWeekStates, getJobId, pickLucky3} = require('../helpers/parallel_add');
 
 
 router.post('/add-customer-details',  async (req, res) => {
@@ -32,6 +32,11 @@ router.post('/add-week-states', async (req, res, next) => {
     const payload = req.body['payload'];
     const name = req.body['name'];
     await AddWeekStates(name, payload, res);
+});
+
+router.post('/pick-lucky-3', async (req, res, next) => {
+    const {count, name} = req.body['payload'];
+    pickLucky3(count, name, res);
 });
 
 module.exports = router;

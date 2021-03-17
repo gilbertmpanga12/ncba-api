@@ -174,41 +174,45 @@ async function deleteColletions(name, count, job){
 
 
 async function getLucky10(name, count, job){
-  let details_index = 0;
-  let docsReferences = [];
-  let documentSnapshotArrayDetails = [];
-  let lucky_weekly_10_winners = [];
-  const details_batch = firestore().batch();
-  const points_batch = firestore().batch();
-  let progress = 0;
+  try{
+    let details_index = 0;
+    let docsReferences = [];
+    let documentSnapshotArrayDetails = [];
+    let lucky_weekly_10_winners = [];
+    const details_batch = firestore().batch();
+    const points_batch = firestore().batch();
+    let progress = 0;
+    
+    
+    while(details_index <= count){
+      docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`));
+      details_index++;
+    }
   
+    await Promise.all(docsReferences.forEach(ref => {
+      ref.get().then(payload => {
+        payload.forEach(doc => documentSnapshotArrayDetails.push(doc.data()));
+        progress += 1;
+        job.progress(progress);
+      })
+    }));
   
-  while(details_index <= count){
-    docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`));
-    details_index++;
+    lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
+  
+    lucky_weekly_10_winners.forEach(csv_doc => {
+      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+      let payload = firestore().collection(`${name}_grand_total_points`).doc(uid);
+      details_batch.set(payload, csv_doc);
+      points_batch.set(payload, {customerId: csv_doc['Customer Number'],
+      loanReference: csv_doc['Loan Reference']});
+    });
+    details_batch.commit();
+    points_batch.commit();
+    job.progress(`100`);
+  }catch(e){
+    job.progress(`Picking lucky winners failed`);
+    logger.info('Error while picking lucky 10', e);
   }
-
-  await Promise.all(docsReferences.forEach(ref => {
-    ref.get().then(payload => {
-      payload.forEach(doc => documentSnapshotArrayDetails.push(doc.data()));
-      progress += 1;
-      job.progress(progress);
-    })
-  }));
-
-  lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
-
-  lucky_weekly_10_winners.forEach(csv_doc => {
-    const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
-    let payload = firestore().collection(`${name}_grand_total_points`).doc(uid);
-    details_batch.set(payload, csv_doc);
-    points_batch.set(payload, {customerId: csv_doc['Customer Number'],
-    loanReference: csv_doc['Loan Reference']});
-  });
-  details_batch.commit();
-  points_batch.commit();
-  job.progress(`100`);
-  
   
 }
 
