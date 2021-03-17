@@ -72,14 +72,12 @@ function start() {
           }
         })
         .on("end", async function (data) {
-          if(parseInt(count) > 1 ){
+          if(parseInt(count) > 1){
             const diff = count -1;
-            const customerPoints = await firestore().collection(`${name}_week_${diff}_customer_points`).get();
-            customerPoints.forEach(customer_point => datas.push(customer_point.data()));
             const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).get();
-            customerPoints.forEach(customer_point => datas.push(customer_point.data()));
             customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-            return;
+            console.log(datas)
+            console.log(datas.length)
           }
 
           if(parseInt(count) === parseInt(weekDuration)){
