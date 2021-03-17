@@ -5,8 +5,8 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners,
 
 
 router.post('/add-customer-details',  async (req, res) => {
-    const {url, name, count, operation} = req.body;
-    ParallelIndividualWrites(url, count, res, name, operation);
+    const {url, name, count, operation, weekDuration} = req.body;
+    ParallelIndividualWrites(url, count, res, name, operation, weekDuration);
 });
 
 router.post('/job', (req, res) =>{

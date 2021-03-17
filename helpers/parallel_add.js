@@ -10,9 +10,9 @@ let Queue = require('bull');
 let workQueue = new Queue('work', {redis: {port: 6379, 
     host: '127.0.0.1', password: process.env.REDIS_PASSWORD_RAFFLE}});
 
-async function ParallelIndividualWrites(url, count, res, name, operation) {
+async function ParallelIndividualWrites(url, count, res, name, operation, weekDuration) {
     try{
-        const job =  await workQueue.add({url, count, name, operation});
+        const job =  await workQueue.add({url, count, name, operation, weekDuration});
         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id, jobId: job.id});
         logger.info(`Job ID ${job.id}`);
   }catch(e){
@@ -120,6 +120,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name){
                 });
             })
         }));
+        logger.info('Clustering completed');
     }catch(e){
         logger.info(e);
     }
@@ -184,26 +185,6 @@ async function getJobId(req, res){
     }
   }
 
-async function deleteColletion(count, name){
-    let batch_points = firestore().batch();
-    let batch_details = firestore().batch();
-    firestore().collection('').listDocuments
-    firestore().collection(`${name}_week_${count}_customer_points`).listDocuments().then(val => {
-        val.map((val) => {
-            batch_points.delete(val)
-        })
-
-        batch_points.commit();
-    });
-
-    firestore().collection(`${name}_week_${count}_customer_details`).listDocuments().then(val => {
-        val.map((val) => {
-            batch_details.delete(val)
-        })
-
-        batch_details.commit();
-    });
-}
 
 
 async function updateWeeklyState(count, name){

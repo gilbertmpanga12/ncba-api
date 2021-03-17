@@ -34,7 +34,7 @@ function start() {
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
       const datas = [];
-      const {url, name, count, operation} = job.data;
+      const {url, name, count, operation, weekDuration} = job.data;
       const csvStream = csv.createStream();
       if(operation === 'delete'){
         deleteColletions(name, count, job);
@@ -69,6 +69,20 @@ function start() {
           }
         })
         .on("end", async function (data) {
+          if(parseInt(count) > 1 ){
+            const diff = count -1;
+            const customerPoints = await firestore().collection(`${name}_week_${diff}_customer_points`).get();
+            customerPoints.forEach(customer_point => datas.push(customer_point.data()));
+            const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).get();
+            customerPoints.forEach(customer_point => datas.push(customer_point.data()));
+            customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+            return;
+          }
+
+          if(parseInt(count) === parseInt(weekDuration)){
+            getLucky10(name, count, job);
+          }
+          
           writePointsAndDetails(datas, name, count, job);
         });
     } catch (e) {
@@ -140,6 +154,75 @@ async function deleteColletions(name, count, job){
 
     documentSnapshotArrayDetails.forEach((csv_doc) => {
       batchArrayDetails[batchIndexDetails].delete(csv_doc);
+      operationCounterDetails++;
+      final_progress += `X${operationCounterDetails}/${total_count_details}`;
+      job.progress(final_progress);
+      if (operationCounterDetails === 499) {
+        batchArrayDetails.push(firestore().batch());
+        batchIndexDetails++;
+        operationCounterDetails = 0;
+      }
+    });
+  
+    batchArrayPoints.forEach(async (batch) => await batch.commit());
+    batchArrayDetails.forEach(async (batch) => await batch.commit());
+    updateWeeklyState(count, name);
+    job.progress(`${total_count_details}/${total_count_points}`);
+  
+}
+
+
+async function getLucky10(name, count, job){
+  let details_index = 1;
+  let points_index = 1;
+  let documentSnapshotArrayPoints = [];
+  let documentSnapshotArrayDetails = [];
+  
+  while(details_index <= count){
+    let payload = await firestore().collection(`${name}_week_${details_index}_customer_details`).get();
+    payload.forEach(doc => documentSnapshotArrayDetails.push(doc.data()));
+    details_index++;
+  }
+
+  while(points_index <= count){
+    let payload = await firestore().collection(`${name}_week_${points_index}_customer_points`).get();
+    payload.forEach(doc => documentSnapshotArrayPoints.push(doc.data()));
+    points_index++;
+  }
+
+
+  const batchArrayPoints = [];
+  const batchArrayDetails = [];
+  batchArrayPoints.push(firestore().batch());
+  batchArrayDetails.push(firestore().batch());
+  let operationCounter = 0;
+  let batchIndex = 0;
+
+  let operationCounterDetails = 0;
+  let batchIndexDetails = 0;
+  let final_progress = "";
+  let total_count_details = documentSnapshotArrayDetails.length;
+  let total_count_points = documentSnapshotArrayPoints.length;
+
+    documentSnapshotArrayPoints.forEach((csv_doc) => {
+      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+      const points = firestore().collection(`${name}_grand_total_points`).doc(uid);
+      batchArrayPoints[batchIndex].set(points, {customerId: csv_doc['Customer Number'],
+      loanReference: csv_doc['Loan Reference']});
+      operationCounter++;
+      final_progress += `X${operationCounter}/${total_count_points}`;
+      job.progress(final_progress);
+      if (operationCounter === 499) {
+        batchArrayPoints.push(firestore().batch());
+        batchIndex++;
+        operationCounter = 0;
+      }
+    });
+
+    documentSnapshotArrayDetails.forEach((csv_doc) => {
+      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+      const details = firestore().collection(`${name}_grand_total_details`).doc(uid);
+      batchArrayDetails[batchIndexDetails].set(details, csv_doc);
       operationCounterDetails++;
       final_progress += `X${operationCounterDetails}/${total_count_details}`;
       job.progress(final_progress);
