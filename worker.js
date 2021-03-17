@@ -143,14 +143,12 @@ async function deleteColletions(name, count, job){
   let operationCounterDetails = 0;
   let batchIndexDetails = 0;
  
-  let total_count_details = documentSnapshotArrayDetails.length;
-  let total_count_points = documentSnapshotArrayPoints.length;
-
+  
     documentSnapshotArrayPoints.forEach((csv_doc) => {
       batchArrayPoints[batchIndex].delete(csv_doc);
       operationCounter++;
       
-      job.progress({current: operationCounter, remaining:total_count_points});
+      job.progress({current: operationCounter, remaining:0});
       if (operationCounter === 499) {
         batchArrayPoints.push(firestore().batch());
         batchIndex++;
@@ -162,8 +160,7 @@ async function deleteColletions(name, count, job){
       batchArrayDetails[batchIndexDetails].delete(csv_doc);
       operationCounterDetails++;
       
-     
-      job.progress({current: operationCounterDetails, remaining:total_count_details});
+      job.progress({current: operationCounter, remaining:0});
       if (operationCounterDetails === 499) {
         batchArrayDetails.push(firestore().batch());
         batchIndexDetails++;
