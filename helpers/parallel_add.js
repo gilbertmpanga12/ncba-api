@@ -80,7 +80,6 @@ async function WriteCustomerDetails(datas,name,count) {
 
  async function RandomiseLuckyWinners(name, count, res){
     try{
-        console.log(`${name}_week_${count}_customer_points`)
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         const doc = await collection.get();
         const results = [];
@@ -119,7 +118,8 @@ async function clusterWeeklyLoosers(luckyWinners, count, name){
                 });
             })
         }));
-        logger.info('Clustering completed');
+        const job =  await workQueue.add({generateLucky10: true, count});
+        logger.info('Clustering completed ' + job.id);
     }catch(e){
         logger.info(e);
     }

@@ -38,11 +38,19 @@ function start() {
     try {
       const datas = [];
       const {url, name, count, operation, weekDuration} = job.data;
+      const {generateLucky10, count} = job.data;
       const csvStream = csv.createStream();
+      
       if(operation === 'delete'){
         deleteColletions(name, count, job);
         return;
       }
+
+      if(generateLucky10){
+        getLucky10(name, count, job);
+        return;
+      }
+
       progress(request(url))
         .on("progress", function (state) {
           logger.info("progress", state);
@@ -83,10 +91,9 @@ function start() {
 
           if(parseInt(count) === parseInt(weekDuration)){
             writePointsAndDetails(datas, name, count, job);
-            getLucky10(name, count, job);
             return;
           }
-
+          
           writePointsAndDetails(datas, name, count, job);
         });
     } catch (e) {
