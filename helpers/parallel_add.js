@@ -197,7 +197,7 @@ async function pickLucky3(name, res){
         let winners = [];
         const weeklyGrand = await firestore().collection(`${name}_grand_total_details`).get();
         weeklyGrand.forEach(data => winners.push(data.data()));
-        let lucky3 = pickRandom(winners,  {count: 10});
+        let lucky3 = pickRandom(winners,  {count: 3});
         lucky3.forEach(csv_doc => {
             const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
             firestore().collection(`${name}_winner3_details`).doc(uid).set(csv_doc).then(x => x.writeTime);;
