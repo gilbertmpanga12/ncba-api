@@ -99,7 +99,7 @@ async function WriteCustomerDetails(datas,name,count) {
 
 async function storeRandomisedWinners(count, luckyWinners, name){
     try{
-        
+    console.log('randomesied random machine called')
      await admin.firestore().collection(`${name}_week_${count}_winners`).doc(`${count}`)
      .set({winners:luckyWinners}, {merge: true});
      clusterWeeklyLoosers(luckyWinners, count, name);
@@ -110,6 +110,7 @@ async function storeRandomisedWinners(count, luckyWinners, name){
 
 async function clusterWeeklyLoosers(luckyWinners, count, name){
     try{
+        console.log('clustering called');
         const collection =  admin.firestore().collection(`${name}_week_${count}_customer_points`);
         await Promise.all(luckyWinners.map((winner) => {
             collection.where('customerId', '==', winner['customerId']).get().then((winner_id) => {
@@ -118,7 +119,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name){
                 });
             })
         }));
-        const job =  await workQueue.add({generateLucky10: true, count});
+        const job =  await workQueue.add({generateLucky10: true, count:count, name:name});
         logger.info('Clustering completed ' + job.id);
     }catch(e){
         logger.info(e);

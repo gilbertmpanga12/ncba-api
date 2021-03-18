@@ -38,9 +38,9 @@ function start() {
     try {
       const datas = [];
       const {url, name, count, operation, weekDuration} = job.data;
-      const {generateLucky10, count} = job.data;
+      const generateLucky10 = job.data['generateLucky10'];
       const csvStream = csv.createStream();
-      
+
       if(operation === 'delete'){
         deleteColletions(name, count, job);
         return;
@@ -201,8 +201,8 @@ async function getLucky10(name, count, job){
       job.progress({current: progress, remaining: 0});
       details_index++;
     }
+   
   
-    
     await Promise.all(docsReferences).then((docs) => {
      docs.map(doc => doc.forEach(user_details => {
         documentSnapshotArrayDetails.push(user_details.data())
@@ -211,6 +211,8 @@ async function getLucky10(name, count, job){
       }));
       
     });
+
+
 
       lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
       progress += 1;
