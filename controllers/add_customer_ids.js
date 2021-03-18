@@ -35,7 +35,7 @@ router.post('/add-week-states', async (req, res, next) => {
 });
 
 router.post('/pick-lucky-3', async (req, res, next) => {
-    const {name} = req.body['payload'];
+    const {name} = req.body;
     pickLucky3(name, res);
 });
 
