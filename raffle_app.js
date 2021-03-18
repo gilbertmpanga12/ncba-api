@@ -5,7 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const rateLimit = require("express-rate-limit");
-const port = 7000;
+const port = 6000;
 const add_customer_numbers = require('./controllers/add_customer_ids');
 const reports = require('./controllers/reports');
 const {getFirebaseUser} = require('./helpers/firebaseSecurity');
@@ -27,8 +27,8 @@ app.use(limiter);
 app.use(bodyParser.json());
 app.get('/ncba-api/refresh-token', getFirebaseUser, (req, res) => 
 res.status(200).json({status: true, ...req.user}));
-app.use('/ncba-api/api',  add_customer_numbers);
-app.use('/ncba-api/api/reports', reports);
+app.use('/ncba-api/api', getFirebaseUser,  add_customer_numbers);
+app.use('/ncba-api/api/reports',getFirebaseUser, reports);
 app.get('/ncba-api', (req, res) => res.send({message: "Raffle app active"}));
 
 
