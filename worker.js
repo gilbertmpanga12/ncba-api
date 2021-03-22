@@ -141,16 +141,22 @@ async function writePointsAndDetails(datas, name, count, job){
 async function deleteColletions(name, count, job){
   let documentSnapshotArrayPoints = await firestore().collection(`${name}_week_${count}_customer_points`).listDocuments();
   let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
+  let documentSnapshotArrayWinners =  await firestore().collection(`${name}_week_${count}_winners`).listDocuments();
+
   const batchArrayPoints = [];
   const batchArrayDetails = [];
+  const batchWinners = [];
   batchArrayPoints.push(firestore().batch());
   batchArrayDetails.push(firestore().batch());
+  batchWinners.push(firestore().batch());
   let operationCounter = 0;
   let batchIndex = 0;
 
   let operationCounterDetails = 0;
   let batchIndexDetails = 0;
  
+  let operationCounterWinners = 0;
+  let batchIndexWinners = 0;
   
     documentSnapshotArrayPoints.forEach((csv_doc) => {
       batchArrayPoints[batchIndex].delete(csv_doc);
@@ -175,6 +181,16 @@ async function deleteColletions(name, count, job){
         operationCounterDetails = 0;
       }
     });
+   
+    if(documentSnapshotArrayWinners.length >= 1){
+      documentSnapshotArrayWinners.forEach((csv_doc) => {
+        batchWinners[batchIndexWinners].delete(csv_doc);
+        operationCounterWinners++;
+        job.progress({current: operationCounterWinners, remaining: 0});
+      });
+      batchWinners.forEach(async (batch) => await batch.commit());
+    }
+    
   
     batchArrayPoints.forEach(async (batch) => await batch.commit());
     batchArrayDetails.forEach(async (batch) => await batch.commit());
