@@ -10,6 +10,7 @@ const request = require("request");
 const progress = require("request-progress");
 const {updateWeeklyState} = require('./helpers/parallel_add');
 const pickRandom = require('pick-random');
+const moment = require('moment');
 // process.env.REDIS_URL || "redis://127.0.0.1:6379";
 /*
 {
@@ -32,14 +33,7 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+  let workQueue = new Queue("work","redis://127.0.0.1:6379");
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
@@ -71,12 +65,12 @@ function start() {
           if(csv_data["Customer Number"] && 
           csv_data["Loan Reference"] && 
           csv_data["Loan Repaid Date"] 
-          && csv_data["Loan Start Date"]){ // omit empty customer _ids
+          && csv_data["Loan Start Date"]){
             datas.push({
               "Customer Number": csv_data["Customer Number"],
               "Loan Reference": csv_data["Loan Reference"],
-              "Loan Repaid Date": csv_data["Loan Repaid Date"],
-              "Loan Start Date": csv_data["Loan Start Date"],
+              "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
+              "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
             });
           }else{
             const eror_message = `Please check your csv file for missing 
@@ -119,7 +113,7 @@ async function writePointsAndDetails(datas, name, count, job){
   let operationCounter = 0;
   let batchIndex = 0;
   documentSnapshotArray.forEach((csv_doc) => {
-    const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+    const uid = `${csv_doc['Loan Reference']}`.trim();
     const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
     batchArrayPoints[batchIndex].set(documentDataPoints, {customerId: csv_doc['Customer Number'],
@@ -225,7 +219,7 @@ async function getLucky10(name, count, job){
       progress += 1;
       job.progress({current: progress, remaining: 0});
       lucky_weekly_10_winners.forEach(csv_doc => {
-      const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+      const uid = `${csv_doc['Loan Reference']}`.trim();
       let points = firestore().collection(`${name}_grand_total_points`).doc(uid);
       let details = firestore().collection(`${name}_grand_total_details`).doc(uid);
       details_batch.set(details, csv_doc);

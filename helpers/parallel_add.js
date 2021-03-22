@@ -2,19 +2,12 @@ require('dotenv').config();
 const admin = require('firebase-admin');
 const pickRandom = require('pick-random');
 const {logger} = require('../helpers/logger');
-const { nanoid } = require('nanoid');
 const { firestore } = require('firebase-admin');
 
 let Queue = require('bull');
-// ********
-let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+
+
+let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
 async function ParallelIndividualWrites(url, count, res, name, operation, weekDuration) {
     try{
@@ -51,39 +44,7 @@ async function AddWeekStates(name, datas, res) {
 }
 
 
-async function WriteCustomerDetails(datas,name,count) {
-    try{
-        const user_details = datas;
-        let user_details_length = datas.length;
-        let counter_500s = 0;
-        var customerDetails = firestore().batch();
-        let remainder = user_details_length;
-        for(var start=0; start <= user_details_length; start++){
-            counter_500s += 1;
-            if(remainder < 500){
-                const uid = nanoid(10);
-                const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-                customerDetails.set(collection, {...user_details[start], uid});
-                await customerDetails.commit();// check for last
-                break;
-            }
-            const uid = nanoid(10);
-            const collection = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-            customerDetails.set(collection, {...user_details[start], uid});
-            if(counter_500s === 500){
-                await customerDetails.commit();
-                customerDetails = firestore().batch();
-                counter_500s = 0;
-                remainder -= 500;
-                continue;
-            }
-            
-           }
-      
-    }catch(e){
-        logger.info('FAILED TO ADD CUSTOMER DETAILS', e);
-    }
-}
+
 
  async function RandomiseLuckyWinners(name, count, res){
     try{
@@ -207,7 +168,7 @@ async function pickLucky3(name, res){
         weeklyGrand.forEach(data => winners.push(data.data()));
         let lucky3 = pickRandom(winners,  {count: 3});
         lucky3.forEach(csv_doc => {
-            const uid = `${csv_doc['Customer Number']}${csv_doc['Loan Reference']}`;
+            const uid = `${csv_doc['Loan Reference']}`.trim();
             firestore().collection(`${name}_winner3_details`).doc(uid).set(csv_doc).then(x => x.writeTime);;
             firestore().collection(`${name}_winner3_points`).doc(uid).set({
             customerId: csv_doc['Customer Number'], 
@@ -228,4 +189,4 @@ workQueue.on('global:completed', (jobId, result) => {
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners,
      enterGrandDraw, clusterWeeklyLoosers, 
      AddWeekStates, getJobId, ParallelIndividualWrites, 
-     WriteCustomerDetails, updateWeeklyState, pickLucky3};
+      updateWeeklyState, pickLucky3};

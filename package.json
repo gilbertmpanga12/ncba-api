@@ -5,7 +5,10 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.js"
+    "start": "node raffle_app.js",
+    "dev": "nodemon raffle_app.js",
+    "cross-env": "cross-env NODE_ENV=prod",
+    "pre": "echo shit"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +26,7 @@
     "firebase-admin": "^9.5.0",
     "helmet": "^4.4.1",
     "json2csv": "^5.0.6",
+    "moment": "^2.29.1",
     "nanoid": "^3.1.20",
     "papaparse": "^5.3.0",
     "pdfmake": "^0.1.70",
@@ -30,5 +34,6 @@
     "request": "^2.88.2",
     "request-progress": "^3.0.0",
     "throng": "^5.0.0"
-  }
+  },
+  "devDependencies": {}
 }
