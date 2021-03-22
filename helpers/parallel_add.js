@@ -46,7 +46,7 @@ async function AddWeekStates(name, datas, res) {
 
 
 
- async function RandomiseLuckyWinners(name, count, res){
+ async function RandomiseLuckyWinners(name, count, weekDuration, res){
     try{
         const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
         const doc = await collection.get();
@@ -55,7 +55,7 @@ async function AddWeekStates(name, datas, res) {
             results.push(doc.data());
         });
         const luckyWinners = pickRandom(results, {count: 10});
-        storeRandomisedWinners(count, luckyWinners, name);
+        storeRandomisedWinners(count, luckyWinners, name, weekDuration);
         
         res.status(200).send({message: luckyWinners});
     }catch(e){
@@ -65,18 +65,18 @@ async function AddWeekStates(name, datas, res) {
 }
 
 
-async function storeRandomisedWinners(count, luckyWinners, name){
+async function storeRandomisedWinners(count, luckyWinners, name, weekDuration){
     try{
     console.log('randomesied random machine called')
      await admin.firestore().collection(`${name}_week_${count}_winners`).doc(`${count}`)
      .set({winners:luckyWinners}, {merge: true});
-     clusterWeeklyLoosers(luckyWinners, count, name);
+     clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
     }catch(e){
         logger.info(e); 
     }
 }
 
-async function clusterWeeklyLoosers(luckyWinners, count, name){
+async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration){
     try{
         console.log('clustering called');
         const collection =  admin.firestore().collection(`${name}_week_${count}_customer_points`);
@@ -87,8 +87,11 @@ async function clusterWeeklyLoosers(luckyWinners, count, name){
                 });
             })
         }));
-        const job =  await workQueue.add({generateLucky10: true, count:count, name:name});
-        logger.info('Clustering completed ' + job.id);
+
+        if(count == weekDuration){
+            const job =  await workQueue.add({generateLucky10: true, count:count, name:name});
+            logger.info('Clustering completed ' + job.id);
+        }
     }catch(e){
         logger.info(e);
     }

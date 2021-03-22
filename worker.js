@@ -62,13 +62,13 @@ function start() {
           job.progress('Oops an internal error occured, please contact support');
         })
         .on("data", function (csv_data) {
-          if(csv_data["Customer Number"] && 
-          csv_data["Loan Reference"] && 
-          csv_data["Loan Repaid Date"] 
-          && csv_data["Loan Start Date"]){
+          if(csv_data["Customer Number"].trim() && 
+          csv_data["Loan Reference"].trim() && 
+          csv_data["Loan Repaid Date"].trim() 
+          && csv_data["Loan Start Date"].trim()){
             datas.push({
-              "Customer Number": csv_data["Customer Number"],
-              "Loan Reference": csv_data["Loan Reference"],
+              "Customer Number": csv_data["Customer Number"].trim(),
+              "Loan Reference": csv_data["Loan Reference"].trim(),
               "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
               "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
             });
@@ -142,6 +142,8 @@ async function deleteColletions(name, count, job){
   let documentSnapshotArrayPoints = await firestore().collection(`${name}_week_${count}_customer_points`).listDocuments();
   let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
   let documentSnapshotArrayWinners =  await firestore().collection(`${name}_week_${count}_winners`).listDocuments();
+
+  console.info(documentSnapshotArrayWinners, documentSnapshotArrayWinners.length);
 
   const batchArrayPoints = [];
   const batchArrayDetails = [];

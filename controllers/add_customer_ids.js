@@ -15,9 +15,8 @@ router.post('/job', (req, res) =>{
 
 
 router.post('/randomise-lucky-winners', async (req, res, next) => {
-    const name = req.body['name'];
-    const count = req.body['count'];
-    await RandomiseLuckyWinners(name, count, res);
+    const {weekDuration, name, count} = req.body;
+    await RandomiseLuckyWinners(name, count, weekDuration, res);
 });
 
 
