@@ -182,9 +182,14 @@ async function pickLucky3(name, res){
         const weeklyGrand = await firestore().collection(`${name}_grand_total_details`).get();
         weeklyGrand.forEach(data => winners.push(data.data()));
         let lucky3 = pickRandom(winners,  {count: 3});
+        // details
         lucky3.forEach(csv_doc => {
             const uid = `${csv_doc['Loan Reference']}`.trim();
-            firestore().collection(`${name}_winner3_details`).doc(uid).set(csv_doc).then(x => x.writeTime);;
+            firestore().collection(`${name}_winner3_details`).doc(uid).set(csv_doc).then(x => x.writeTime);
+        });
+        // points
+        lucky3.forEach(csv_doc => {
+            const uid = `${csv_doc['Loan Reference']}`.trim();
             firestore().collection(`${name}_winner3_points`).doc(uid).set({
             customerId: csv_doc['Customer Number'], 
             loanReference:csv_doc['Loan Reference']}).then(x => x.writeTime);

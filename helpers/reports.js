@@ -3,6 +3,8 @@ const PdfPrinter = require('pdfmake');
 const { Parser } = require('json2csv');
 const expirydate = {action: 'read', expires: '03-09-2500'};
 const {nanoid} = require('nanoid');
+const { firestore } = require('firebase-admin');
+const {logger} = require('../helpers/logger');
 
 
 async function printPdf(fonts, docDefinition, res){
@@ -27,6 +29,18 @@ async function printPdf(fonts, docDefinition, res){
 	}catch(e){
 		console.log('PDF CREATION ERROR', e);
 		res.status(500).send({message: e});
+	}
+}
+
+async function getWeeklyCsv(count, name, res){
+	try{
+		console.log(count, name)
+		const results_array = [];
+		const results = await firestore().collection(`${name}_week_${count}_customer_details`).get();
+		results.forEach(customer => results_array.push(customer.data()));
+		printCsv(results_array, res);
+	}catch(e){
+		logger.info(e);
 	}
 }
 
@@ -56,4 +70,4 @@ async function printCsv(fullReuslts, res){
 
 
 
-module.exports = {printPdf, printCsv};
+module.exports = {printPdf, printCsv, getWeeklyCsv};

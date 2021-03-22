@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const router = Router();
-const {printCsv, printPdf} = require('../helpers/reports');
+const {printCsv, printPdf, getWeeklyCsv} = require('../helpers/reports');
 
 var fonts = {
 	Roboto: {
@@ -80,6 +80,11 @@ router.post('/generate-csv', async (req,res) => {
     const randomisedWinners = req.body;
 	await printCsv(randomisedWinners, res);
     
+});
+
+router.post('/generate-weekly-csv', async (req,res) => {
+    const {count, name} = req.body;
+	getWeeklyCsv(count, name, res);
 });
 
 
