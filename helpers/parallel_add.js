@@ -7,11 +7,18 @@ const { firestore } = require('firebase-admin');
 let Queue = require('bull');
 
 
-let workQueue = new Queue("work", "redis://127.0.0.1:6379");
+let workQueue = new Queue("work", {
+    redis: {
+      port: 6379,
+      host: "127.0.0.1",
+      password:
+        process.env.REDIS_PASSWORD_RAFFLE,
+    },
+  });
 
-async function ParallelIndividualWrites(url, count, res, name, operation, weekDuration) {
+async function ParallelIndividualWrites(url, count, res, name, operation, weekDuration, csv_file, startDate, endDate) {
     try{
-        const job =  await workQueue.add({url, count, name, operation, weekDuration});
+        const job =  await workQueue.add({url, count, name, operation, weekDuration, csv_file, startDate, endDate});
         res.status(200).send({message: 'Succefully added all customer ids: ' + job.id, jobId: job.id});
         logger.info(`Job ID ${job.id}`);
   }catch(e){
@@ -67,7 +74,7 @@ async function AddWeekStates(name, datas, res) {
 
 async function storeRandomisedWinners(count, luckyWinners, name, weekDuration){
     try{
-    console.log('randomesied random machine called')
+   
      await admin.firestore().collection(`${name}_week_${count}_winners`).doc(`${count}`)
      .set({winners:luckyWinners}, {merge: true});
      clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
@@ -78,15 +85,13 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration){
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration){
     try{
-        console.log('clustering called');
         const collection =  admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        const customer_details =  admin.firestore().collection(`${name}_week_${count}_customer_details`);
         await Promise.all(luckyWinners.map((winner) => {
-            collection.where('customerId', '==', winner['customerId']).get().then((winner_id) => {
-                winner_id.forEach(x => {
-                    admin.firestore().collection(`${name}_week_${count}_customer_point`).doc(x.id).delete()
-                });
-            })
-        }));
+            const uid = winner['loanReference'];
+            collection.doc(uid).delete();
+            customer_details.doc(uid).delete();
+        })).then(res => logger.info("cleaned winners", res));
 
         if(count == weekDuration){
             const job =  await workQueue.add({generateLucky10: true, count:count, name:name});
@@ -160,9 +165,16 @@ async function getJobId(req, res){
 
 async function updateWeeklyState(count, name){
   await firestore().collection('all_projects')
-  .doc(name).collection('week_states').doc(`week_${count}`).update({state: false});
+  .doc(name).collection('week_states').doc(`week_${count}`).update({state: false}, {merge: true});
 
 }
+
+// async function updateWeeklyStateRandom(count, name, csv_file, startDate, endDate){
+//     firestore().collection('all_projects')
+//     .doc(name).collection('week_state_draw').doc(`week_${count}`).set({state: true, 
+//       startedDate:startDate, endDate:endDate, csv_file: csv_file}, {merge: false});
+  
+//   }
 
 async function pickLucky3(name, res){
     try{

@@ -33,7 +33,14 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work","redis://127.0.0.1:6379");
+  let workQueue = new Queue("work", {
+    redis: {
+      port: 6379,
+      host: "127.0.0.1",
+      password:
+        process.env.REDIS_PASSWORD_RAFFLE,
+    },
+  });
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
@@ -197,6 +204,7 @@ async function deleteColletions(name, count, job){
     batchArrayPoints.forEach(async (batch) => await batch.commit());
     batchArrayDetails.forEach(async (batch) => await batch.commit());
     updateWeeklyState(count, name);
+    // updateWeeklyStateRandom(count, name, csv_file, startDate, endDate);
     
     job.progress({current: 100, remaining:100});
   
