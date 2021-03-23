@@ -34,7 +34,6 @@ async function printPdf(fonts, docDefinition, res){
 
 async function getWeeklyCsv(count, name, res){
 	try{
-		console.log(count, name)
 		const results_array = [];
 		const results = await firestore().collection(`${name}_week_${count}_customer_details`).get();
 		results.forEach(customer => results_array.push(customer.data()));
