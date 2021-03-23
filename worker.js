@@ -41,6 +41,7 @@ function start() {
       const {url, name, count, operation, weekDuration} = job.data;
       const generateLucky10 = job.data['generateLucky10'];
       const csvStream = csv.createStream();
+      var duplicateCount = {};
 
       if(operation === 'delete'){
         deleteColletions(name, count, job);
@@ -66,16 +67,33 @@ function start() {
           csv_data["Loan Reference"].trim() && 
           csv_data["Loan Repaid Date"].trim() 
           && csv_data["Loan Start Date"].trim()){
-            datas.push({
-              "Customer Number": csv_data["Customer Number"].trim(),
-              "Loan Reference": csv_data["Loan Reference"].trim(),
-              "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
-              "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
-            });
+            // check for duplicates
+           
+            const key = csv_data["Loan Reference"].trim();
+
+            if(duplicateCount[key] === 0){
+              duplicateCount[key]++;
+                        }else{
+                          duplicateCount[key] = 0;
+                         
+                        }
+            
+                      if(duplicateCount[key] >= 1){
+                          const eror_message = `Please check your csv file for duplicates`;
+                          job.progress(eror_message);
+                          throw Error(eror_message);
+                        }
+
+                        datas.push({
+                          "Customer Number": csv_data["Customer Number"].trim(),
+                          "Loan Reference": csv_data["Loan Reference"].trim(),
+                          "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
+                          "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
+                        });
+  
           }else{
             const eror_message = `Please check your csv file for missing 
-            blank customer numbers, or empty fields and 
-            also ensure column names are correctly named`;
+            blank customer numbers and empty fields`;
             job.progress(eror_message);
             throw Error(eror_message);
           }
