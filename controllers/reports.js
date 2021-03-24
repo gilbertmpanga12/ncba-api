@@ -30,7 +30,7 @@ var fonts = {
 			  widths: [ '*', '*'],
 	  
 			  body: [
-				[ 'Customer ID', 'Points']
+				[ 'Customer ID', 'Reference Id']
 			  ]
 			}
 		  }
@@ -64,12 +64,12 @@ var fonts = {
 router.post('/generate-pdf', async (req,res) => {
 	const randomisedWinners = req.body;
 	docDefinition.content[1].table.body = [
-		[ 'Customer ID', 'Points']
+		[ 'Customer ID', 'Reference ID']
 	];
-	docDefinition.content[0].text = 'Randomised 10 Lucky Winners';
+	docDefinition.content[0].text = 'Randomised 10 Lucky Winners for this week';
 	
 	randomisedWinners.forEach(customer => {
-		docDefinition.content[1].table.body.push(Object.values(customer));
+		docDefinition.content[1].table.body.push(Object.values(customer).reverse());
 	});
 	await printPdf(fonts, docDefinition, res);
     
