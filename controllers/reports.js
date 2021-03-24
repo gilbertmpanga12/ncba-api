@@ -35,6 +35,12 @@ var fonts = {
 			}
 		  }
 	],
+	footer: {
+		columns: [
+		  'NCBA',
+		  { text: 'Right part', alignment: 'right' }
+		]
+	  },
 	styles: {
 		header: {
 			fontSize: 18,
