@@ -23,6 +23,7 @@ async function printPdf(fonts, docDefinition, res){
 		pdfDoc.end();
 		file.getSignedUrl(expirydate).then(url => {
 			const pdfUrl = url[0];
+			console.log(pdfUrl);
 			res.status(200).json({pdfUrl: pdfUrl});
 			
 			});
@@ -36,7 +37,10 @@ async function getWeeklyCsv(count, name, res){
 	try{
 		const results_array = [];
 		const results = await firestore().collection(`${name}_week_${count}_original_details`).get();
-		results.forEach(customer => results_array.push(customer.data()));
+		results.forEach(customer => {
+			const customer_data = customer.data();
+			results_array.push([customer_data['Customer Number'], customer_data['Loan Reference']]);
+		});
 		printCsv(results_array, res);
 	}catch(e){
 		logger.info(e);
