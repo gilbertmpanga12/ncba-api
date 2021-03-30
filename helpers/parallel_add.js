@@ -48,7 +48,7 @@ async function AddWeekStates(name, datas, res) {
 
  async function RandomiseLuckyWinners(name, count, weekDuration, res){
     try{
-        const collection = admin.firestore().collection(`${name}_week_${count}_customer_points`);
+        const collection = admin.firestore().collection(`${name}_week_${count}_customer_details`);
         const doc = await collection.get();
         const results = [];
         doc.forEach(doc => {
@@ -78,12 +78,9 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration){
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration){
     try{
-        console.log('clustering called ****');
-        const collection =  admin.firestore().collection(`${name}_week_${count}_customer_points`);
         const customer_details =  admin.firestore().collection(`${name}_week_${count}_customer_details`);
         await Promise.all(luckyWinners.map((winner) => {
             const uid = winner['loanReference'];
-            collection.doc(uid).delete();
             customer_details.doc(uid).delete();
         })).then(res => logger.info("cleaned winners", res));
 
@@ -97,49 +94,6 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration){
     }
 }
 
-async function enterGrandDraw(name, count , res){
-    try{
-        let start = 1;
-        let startDetails = 1;
-        let customerPoints = [];
-        let customerDetails = [];
-        let total = count;
-        let totalDetails = count;
-        while(start <= total){
-            customerPoints.push(`${name}_week_${start}_customer_points`);
-            start++;
-        }
-        
-        while(startDetails <= totalDetails){
-            customerDetails.push(`${name}_week_${startDetails}_customer_details`);
-            startDetails++;
-        }
-        const grandPoints = admin.firestore().collection(`${name}_grand_total_points`);
-        const grandDetails = admin.firestore().collection(`${name}_grand_total_details`);
-        
-        await Promise.all(customerPoints.map((points) => {
-            admin.firestore().collection(points).get().then((collection_points) => {
-                collection_points.forEach(x => {
-                    grandPoints.doc(x.id).set(x.data())
-                });
-            })
-        }));
-        
-        
-        await Promise.all(customerDetails.map((details) => {
-            admin.firestore().collection(details).get().then((collection_details) => {
-                collection_details.forEach(x => {
-                    grandDetails.doc(x.id).set(x.data())
-                });
-            })
-        }));
-        
-        res.status(200).send({message: `Generated grand draw successfully`});
-        
-    }catch(e){
-        res.status(500).send({message: e});
-    }
-}
 
 
 async function getJobId(req, res){
@@ -182,13 +136,7 @@ async function pickLucky3(name, res){
             const uid = `${csv_doc['Loan Reference']}`.trim();
             firestore().collection(`${name}_winner3_details`).doc(uid).set(csv_doc).then(x => x.writeTime);
         });
-        // points
-        lucky3.forEach(csv_doc => {
-            const uid = `${csv_doc['Loan Reference']}`.trim();
-            firestore().collection(`${name}_winner3_points`).doc(uid).set({
-            customerId: csv_doc['Customer Number'], 
-            loanReference:csv_doc['Loan Reference']}).then(x => x.writeTime);
-        });
+        
         res.status(200).send({message: lucky3});
     }catch(e){
         res.status(500).send({message: 'Failed to randomise lucky 3 winners'});
@@ -202,6 +150,6 @@ workQueue.on('global:completed', (jobId, result) => {
 
 
 module.exports = {ParallelIndividualWrites, RandomiseLuckyWinners,
-     enterGrandDraw, clusterWeeklyLoosers, 
+     clusterWeeklyLoosers, 
      AddWeekStates, getJobId, ParallelIndividualWrites, 
       updateWeeklyState, pickLucky3};

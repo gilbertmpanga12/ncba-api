@@ -125,73 +125,43 @@ function start() {
 async function writePointsAndDetails(datas, name, count, job){
   const documentSnapshotArray = datas;
   const total_count = datas.length;
-  const batchArrayPoints = [];
   const batchArrayDetails = [];
-  batchArrayPoints.push(firestore().batch());
   batchArrayDetails.push(firestore().batch());
   let operationCounter = 0;
   let batchIndex = 0;
   documentSnapshotArray.forEach((csv_doc) => {
     const uid = `${csv_doc['Loan Reference']}`.trim();
-    const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-    batchArrayPoints[batchIndex].set(documentDataPoints, {customerId: csv_doc['Customer Number'],
-    loanReference: csv_doc['Loan Reference']});
     batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
     operationCounter++;
     
     job.progress({current: operationCounter, remaining: total_count});
 
     if (operationCounter === 499) {
-      batchArrayPoints.push(firestore().batch());
       batchArrayDetails.push(firestore().batch());
       batchIndex++;
       operationCounter = 0;
     }
   });
 
-  batchArrayPoints.forEach(async (batch) => await batch.commit());
   batchArrayDetails.forEach(async (batch) => await batch.commit());
   job.progress({current: total_count, remaining:total_count});
 }
 
 
 async function deleteColletions(name, count, job){
-  let documentSnapshotArrayPoints = await firestore().collection(`${name}_week_${count}_customer_points`).listDocuments();
   let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
   let documentSnapshotArrayWinners =  await firestore().collection(`${name}_week_${count}_winners`).listDocuments();
-  let documentSnapshotArrayOriginal =  await firestore().collection(`${name}_week_${count}_original_details`).listDocuments();
-  const batchArrayPoints = [];
   const batchArrayDetails = [];
   const batchWinners = [];
-  const batchOriginalDetails = [];
-  batchArrayPoints.push(firestore().batch());
   batchArrayDetails.push(firestore().batch());
   batchWinners.push(firestore().batch());
-  batchOriginalDetails.push(firestore().batch());
-  let operationCounter = 0;
-  let batchIndex = 0;
-
   let operationCounterDetails = 0;
   let batchIndexDetails = 0;
  
   let operationCounterWinners = 0;
   let batchIndexWinners = 0;
 
-  let operationCounterOriginal = 0;
-  let batchIndexOriginal = 0;
-  
-    documentSnapshotArrayPoints.forEach((csv_doc) => {
-      batchArrayPoints[batchIndex].delete(csv_doc);
-      operationCounter++;
-      
-      job.progress({current: operationCounter, remaining:0});
-      if (operationCounter === 499) {
-        batchArrayPoints.push(firestore().batch());
-        batchIndex++;
-        operationCounter = 0;
-      }
-    });
 
     documentSnapshotArrayDetails.forEach((csv_doc) => {
       batchArrayDetails[batchIndexDetails].delete(csv_doc);
@@ -205,34 +175,21 @@ async function deleteColletions(name, count, job){
       }
     });
 
-    documentSnapshotArrayOriginal.forEach((csv_doc) => {
-      batchOriginalDetails[batchIndexOriginal].delete(csv_doc);
-      operationCounterOriginal++;
-      
-      job.progress({current: operationCounterOriginal, remaining:0});
-      if (operationCounterOriginal === 499) {
-        batchOriginalDetails.push(firestore().batch());
-        batchIndexOriginal++;
-        operationCounterOriginal = 0;
-      }
-    });
    
     if(documentSnapshotArrayWinners.length >= 1){
+      let counter_progress = operationCounterDetails;
       documentSnapshotArrayWinners.forEach((csv_doc) => {
         batchWinners[batchIndexWinners].delete(csv_doc);
         operationCounterWinners++;
-        job.progress({current: operationCounterWinners, remaining: 0});
+        counter_progress += operationCounterWinners;
+        job.progress({current: counter_progress, remaining: 0});
       });
       batchWinners.forEach(async (batch) => await batch.commit());
     }
     
   
-    batchArrayPoints.forEach(async (batch) => await batch.commit());
     batchArrayDetails.forEach(async (batch) => await batch.commit());
-    batchOriginalDetails.forEach(async (batch) => await batch.commit());
     updateWeeklyState(count, name);
-    // updateWeeklyStateRandom(count, name, csv_file, startDate, endDate);
-    
     job.progress({current: 100, remaining:100});
   
 }
@@ -245,7 +202,6 @@ async function getLucky10(name, count, job){
     let documentSnapshotArrayDetails = [];
     let lucky_weekly_10_winners = [];
     const details_batch = firestore().batch();
-    const points_batch = firestore().batch();
     let progress = 0;
     
     
@@ -267,22 +223,17 @@ async function getLucky10(name, count, job){
     });
 
 
-
       lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
-      progress += 1;
+      progress++;
       job.progress({current: progress, remaining: 0});
       lucky_weekly_10_winners.forEach(csv_doc => {
       const uid = `${csv_doc['Loan Reference']}`.trim();
-      let points = firestore().collection(`${name}_grand_total_points`).doc(uid);
       let details = firestore().collection(`${name}_grand_total_details`).doc(uid);
       details_batch.set(details, csv_doc);
-      points_batch.set(points, {customerId: csv_doc['Customer Number'],
-      loanReference: csv_doc['Loan Reference']});
-      progress += 1;
+      progress++;
       job.progress({current: progress, remaining: 0});
     });
     details_batch.commit();
-    points_batch.commit();
     job.progress({current: 100, remaining: 0});
   }catch(e){
     job.progress(`Picking lucky winners failed`);
