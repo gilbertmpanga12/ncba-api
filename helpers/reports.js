@@ -47,7 +47,7 @@ async function getWeeklyCsv(count, name, res){
 		const results = await firestore().collection(`${name}_week_${count}_customer_details`).get();
 		results.forEach(customer => {
 			const customer_data = customer.data();
-			results_array.push([customer_data['Customer Number'], customer_data['Loan Reference']]);
+			results_array.push(customer_data);// [customer_data['Customer Number'], customer_data['Loan Reference']]
 		});
 
 		results_array.push(...winners_array); // store back winners for that week
