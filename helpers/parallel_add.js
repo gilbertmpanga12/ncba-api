@@ -7,14 +7,7 @@ const { firestore } = require('firebase-admin');
 let Queue = require('bull');
 
 
-let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
 async function ParallelIndividualWrites(url, count, res, name, operation, weekDuration, csv_file, startDate, endDate) {
     try{
@@ -66,7 +59,7 @@ async function AddWeekStates(name, datas, res) {
         
         res.status(200).send({message: luckyWinners});
     }catch(e){
-        logger.info(e);
+        logger.info('Randomise lucky winners error', e);
         res.status(500).send({message: 'Please check whether the data entered was valid or contact support'});
     }
 }
@@ -79,12 +72,13 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration){
      .set({winners:luckyWinners}, {merge: true});
      clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
     }catch(e){
-        logger.info(e); 
+        logger.info('Store randomised luck winners error', e); 
     }
 }
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration){
     try{
+        console.log('clustering called ****');
         const collection =  admin.firestore().collection(`${name}_week_${count}_customer_points`);
         const customer_details =  admin.firestore().collection(`${name}_week_${count}_customer_details`);
         await Promise.all(luckyWinners.map((winner) => {
@@ -94,11 +88,12 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration){
         })).then(res => logger.info("cleaned winners", res));
 
         if(count == weekDuration){
+            console.log('week durantion has been called', count == weekDuration)
             const job =  await workQueue.add({generateLucky10: true, count:count, name:name});
             logger.info('Clustering completed ' + job.id);
         }
     }catch(e){
-        logger.info(e);
+        logger.info('clustering error', e);
     }
 }
 

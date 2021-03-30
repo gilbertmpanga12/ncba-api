@@ -33,14 +33,7 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+  let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
@@ -56,6 +49,7 @@ function start() {
       }
 
       if(generateLucky10){
+        console.log('Generate lucky 10 *****');
         getLucky10(name, count, job);
         return;
       }
@@ -133,21 +127,17 @@ async function writePointsAndDetails(datas, name, count, job){
   const total_count = datas.length;
   const batchArrayPoints = [];
   const batchArrayDetails = [];
-  const batchOriginalDetails = [];
   batchArrayPoints.push(firestore().batch());
   batchArrayDetails.push(firestore().batch());
-  batchOriginalDetails.push(firestore().batch());
   let operationCounter = 0;
   let batchIndex = 0;
   documentSnapshotArray.forEach((csv_doc) => {
     const uid = `${csv_doc['Loan Reference']}`.trim();
     const documentDataPoints = firestore().collection(`${name}_week_${count}_customer_points`).doc(uid);
     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-    const original_details = firestore().collection(`${name}_week_${count}_original_details`).doc(uid);
     batchArrayPoints[batchIndex].set(documentDataPoints, {customerId: csv_doc['Customer Number'],
     loanReference: csv_doc['Loan Reference']});
     batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
-    batchOriginalDetails[batchIndex].set(original_details, {...csv_doc});
     operationCounter++;
     
     job.progress({current: operationCounter, remaining: total_count});
@@ -155,7 +145,6 @@ async function writePointsAndDetails(datas, name, count, job){
     if (operationCounter === 499) {
       batchArrayPoints.push(firestore().batch());
       batchArrayDetails.push(firestore().batch());
-      batchOriginalDetails.push(firestore().batch());
       batchIndex++;
       operationCounter = 0;
     }
@@ -163,7 +152,6 @@ async function writePointsAndDetails(datas, name, count, job){
 
   batchArrayPoints.forEach(async (batch) => await batch.commit());
   batchArrayDetails.forEach(async (batch) => await batch.commit());
-  batchOriginalDetails.forEach(async (batch) => await batch.commit());
   job.progress({current: total_count, remaining:total_count});
 }
 
