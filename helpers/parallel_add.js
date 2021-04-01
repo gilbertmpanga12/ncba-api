@@ -6,7 +6,14 @@ const { firestore } = require("firebase-admin");
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", "redis://127.0.0.1:6379");
+let workQueue = new Queue("work", {
+  redis: {
+    port: 6379,
+    host: "127.0.0.1",
+    password:
+      process.env.REDIS_PASSWORD_RAFFLE,
+  },
+});
 
 async function ParallelIndividualWrites(
   url,
