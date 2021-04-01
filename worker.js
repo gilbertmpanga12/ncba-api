@@ -8,7 +8,7 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const {updateWeeklyState} = require('./helpers/parallel_add');
+const {updateWeeklyState, setDocumentCount} = require('./helpers/parallel_add');
 const pickRandom = require('pick-random');
 const moment = require('moment');
 // process.env.REDIS_URL || "redis://127.0.0.1:6379";
@@ -123,6 +123,7 @@ function start() {
 }
 
 async function writePointsAndDetails(datas, name, count, job){
+  const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(count);
   const documentSnapshotArray = datas;
   const total_count = datas.length;
   const batchArrayDetails = [];
@@ -145,6 +146,7 @@ async function writePointsAndDetails(datas, name, count, job){
   });
 
   batchArrayDetails.forEach(async (batch) => await batch.commit());
+  setDocumentCount(name, count,  operationCounter);
   job.progress({current: total_count, remaining:total_count});
 }
 
@@ -167,7 +169,7 @@ async function deleteColletions(name, count, job){
       batchArrayDetails[batchIndexDetails].delete(csv_doc);
       operationCounterDetails++;
       
-      job.progress({current: operationCounter, remaining:0});
+      job.progress({current: operationCounterDetails, remaining:0});
       if (operationCounterDetails === 499) {
         batchArrayDetails.push(firestore().batch());
         batchIndexDetails++;
@@ -190,6 +192,9 @@ async function deleteColletions(name, count, job){
   
     batchArrayDetails.forEach(async (batch) => await batch.commit());
     updateWeeklyState(count, name);
+    setDocumentCount(name, count, 0);
+    pickLucky3(name);
+    
     job.progress({current: 100, remaining:100});
   
 }

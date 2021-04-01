@@ -88,7 +88,7 @@ router.post('/generate-pdf', async (req,res) => {
 	docDefinition.content[0].text = 'Randomised 10 Lucky Winners for this week';
 	console.log(randomisedWinners);
 	randomisedWinners.forEach(customer => {
-		docDefinition.content[1].table.body.push([customer.customerId, customer.loanReference]);
+		docDefinition.content[1].table.body.push([customer['Customer Number'], customer['Loan Reference']]);
 	});
 	await printPdf(fonts, docDefinition, res);
     
