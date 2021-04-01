@@ -4,6 +4,7 @@ const pickRandom = require("pick-random");
 const { logger } = require("../helpers/logger");
 const { firestore } = require("firebase-admin");
 
+
 let Queue = require("bull");
 
 let workQueue = new Queue("work", "redis://127.0.0.1:6379");
@@ -148,7 +149,23 @@ async function getJobId(req, res) {
     let state = await job.getState();
     let progress = job._progress;
     let reason = job.failedReason;
+    const {name, count, docsCount} = progress;
     res.json({ jobId, state, progress, reason });
+
+    if(progress['operationType'] === 'DATA_CREATION' && 
+    progress['current'] === progress['remaining']){
+      setDocumentCount(name, count, docsCount);
+      return;
+    }
+
+    if(progress['operationType'] === 'DELETION' && 
+    progress['current'] === progress['remaining']){
+    updateWeeklyState(count, name);
+    setDocumentCount(name, count, 0);
+    deleteLucky3(name);
+      return;
+    }
+
   }
 }
 
