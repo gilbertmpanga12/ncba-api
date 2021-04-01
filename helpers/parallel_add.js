@@ -6,14 +6,7 @@ const { firestore } = require("firebase-admin");
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", {
-  redis: {
-    port: 6379,
-    host: "127.0.0.1",
-    password:
-      process.env.REDIS_PASSWORD_RAFFLE,
-  },
-});
+let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
 async function ParallelIndividualWrites(
   url,
@@ -233,7 +226,7 @@ async function deleteLucky3(name){
   }
 }
 
-async function currentWeek(count, name, page, docsCount, res) {
+async function currentWeek(count, name, docsCount, page, res) {
   try {
     const resp = [];
     const first = firestore()
@@ -242,10 +235,9 @@ async function currentWeek(count, name, page, docsCount, res) {
       .limit(docsCount)
       .offset(page);
     const process_results = await first.get();
-    process_results.forEach((x) => resp.push(x));
+    process_results.forEach((x) => resp.push(x.data()));
 
-    res.status(200).send({ message: resp.length });
-    res.status(200).send({ message: result.length });
+    res.status(200).send({ message: resp });
   } catch (e) {
     res.status(500).send({ message: "something went wrong" });
     console.log("Current week pagination error", e);
@@ -267,5 +259,6 @@ module.exports = {
   pickLucky3,
   currentWeek,
   setDocumentCount,
-  pickLucky3
+  pickLucky3,
+  deleteLucky3
 };

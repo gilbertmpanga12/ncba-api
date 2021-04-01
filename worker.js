@@ -8,7 +8,7 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const {updateWeeklyState, setDocumentCount} = require('./helpers/parallel_add');
+const {updateWeeklyState, setDocumentCount, deleteLucky3} = require('./helpers/parallel_add');
 const pickRandom = require('pick-random');
 const moment = require('moment');
 // process.env.REDIS_URL || "redis://127.0.0.1:6379";
@@ -33,14 +33,7 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+  let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
   workQueue.process(maxJobsPerWorker, async (job) => {
     try {
@@ -112,7 +105,6 @@ function start() {
             const diff = count - 1;
             const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).get();
             customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-            // writePointsAndDetails(datas, name, count, job);
           }
  
 
@@ -130,7 +122,6 @@ function start() {
 }
 
 async function writePointsAndDetails(datas, name, count, job){
-  const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(count);
   const documentSnapshotArray = datas;
   const total_count = datas.length;
   const batchArrayDetails = [];
@@ -153,7 +144,6 @@ async function writePointsAndDetails(datas, name, count, job){
   });
 
   batchArrayDetails.forEach(async (batch) => await batch.commit());
-  setDocumentCount(name, count,  operationCounter);
   job.progress({current: total_count, remaining:total_count});
 }
 
@@ -198,9 +188,9 @@ async function deleteColletions(name, count, job){
     
   
     batchArrayDetails.forEach(async (batch) => await batch.commit());
-    updateWeeklyState(count, name);
-    setDocumentCount(name, count, 0);
-    pickLucky3(name);
+    //updateWeeklyState(count, name);
+    // setDocumentCount(name, count, 0);
+    //deleteLucky3(name);
     
     job.progress({current: 100, remaining:100});
   
