@@ -40,7 +40,6 @@ router.post('/pick-lucky-3', async (req, res, next) => {
 
 router.post('/current-week', (req, res) => {
     const {count, name, page, docsCount} = req.body;
-    console.log(count, name, docsCount, page);
     currentWeek(count, name, docsCount, page, res);
 });
 

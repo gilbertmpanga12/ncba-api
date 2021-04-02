@@ -252,6 +252,12 @@ async function deleteLucky3(name){
 
 async function currentWeek(count, name, docsCount, page, res) {
   try {
+    /*
+    data: any[];
+  draw: number;
+  recordsFiltered: number;
+  recordsTotal: number;
+    */
     const resp = [];
     const first = firestore()
       .collection(`${name}_week_${count}_customer_details`)
@@ -261,7 +267,7 @@ async function currentWeek(count, name, docsCount, page, res) {
     const process_results = await first.get();
     process_results.forEach((x) => resp.push(x.data()));
 
-    res.status(200).send({ message: resp });
+    res.status(200).send({ data: resp, draw:1, recordsFiltered, recordsTotal});
   } catch (e) {
     res.status(500).send({ message: "something went wrong" });
     console.log("Current week pagination error", e);
