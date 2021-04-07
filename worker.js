@@ -33,16 +33,9 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+  let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
-  workQueue.process(maxJobsPerWorker, async (job) => {
+  workQueue.process(maxJobsPerWorker, async (job, done) => {
     try {
       const datas = [];
       const {url, name, count, operation, weekDuration} = job.data;
@@ -71,39 +64,46 @@ function start() {
           job.progress('Oops an internal error occured, please contact support');
         })
         .on("data", function (csv_data) {
-          if(csv_data["Customer Number"].trim() && 
-          csv_data["Loan Reference"].trim() && 
-          csv_data["Loan Repaid Date"].trim() 
-          && csv_data["Loan Start Date"].trim()){
-            // check for duplicates
-           
-            const key = csv_data["Loan Reference"].trim();
-
-            if(duplicateCount[key] === 0){
-              duplicateCount[key]++;
-                        }else{
-                          duplicateCount[key] = 0;
-                         
-                        }
-            
-                      if(duplicateCount[key] >= 1){
-                          const eror_message = `Please check your csv file for duplicates`;
-                          job.progress(eror_message);
-                          throw Error(eror_message);
-                        }
-
-                        datas.push({
-                          "Customer Number": csv_data["Customer Number"].trim(),
-                          "Loan Reference": csv_data["Loan Reference"].trim(),
-                          "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
-                          "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
-                        });
+          try{
+            if(csv_data["Customer Number"].trim() && 
+            csv_data["Loan Reference"].trim() && 
+            csv_data["Loan Repaid Date"].trim() 
+            && csv_data["Loan Start Date"].trim()){
+              // check for duplicates
+             
+              const key = csv_data["Loan Reference"].trim();
   
-          }else{
+              if(duplicateCount[key] === 0){
+                duplicateCount[key]++;
+                          }else{
+                            duplicateCount[key] = 0;
+                           
+                          }
+              
+                        if(duplicateCount[key] >= 1){
+                            const eror_message = `Please check your csv file for duplicates`;
+                            job.progress(eror_message);
+                            throw Error(eror_message);
+                          }
+  
+                          datas.push({
+                            "Customer Number": csv_data["Customer Number"].trim(),
+                            "Loan Reference": csv_data["Loan Reference"].trim(),
+                            "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
+                            "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
+                          });
+    
+            }else{
+              const eror_message = `Please check your csv file for missing 
+              blank customer numbers and empty fields`;
+              job.progress(eror_message);
+              throw Error(eror_message);
+            }
+          }catch(e){
             const eror_message = `Please check your csv file for missing 
             blank customer numbers and empty fields`;
             job.progress(eror_message);
-            throw Error(eror_message);
+            done(new Error(eror_message));
           }
         })
         .on("end", async function (data) {
@@ -116,11 +116,11 @@ function start() {
  
 
           if(parseInt(count) === parseInt(weekDuration)){
-            writePointsAndDetails(datas, name, count, job);
+            writePointsAndDetails(datas, name, count, job, done);
             return;
           }
           
-          writePointsAndDetails(datas, name, count, job);
+          writePointsAndDetails(datas, name, count, job, done);
         });
     } catch (e) {
       logger.info("WORKER ERROR", e);
@@ -128,7 +128,7 @@ function start() {
   });
 }
 
-async function writePointsAndDetails(datas, name, count, job){
+async function writePointsAndDetails(datas, name, count, job, done){
   const operation = "DATA_CREATION";
   const documentSnapshotArray = datas;
   const total_count = datas.length;
@@ -155,6 +155,7 @@ async function writePointsAndDetails(datas, name, count, job){
   batchArrayDetails.forEach(async (batch) => await batch.commit());
   job.progress({current: total_count, remaining:total_count, operationType: operation, count:count, name:name, 
     docsCount: total_count});
+  done();
 }
 
 
