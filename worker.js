@@ -33,7 +33,14 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", "redis://127.0.0.1:6379");
+  let workQueue = new Queue("work", {
+    redis: {
+      port: 6379,
+      host: "127.0.0.1",
+      password:
+        process.env.REDIS_PASSWORD_RAFFLE,
+    },
+  });
 
   workQueue.process(maxJobsPerWorker, async (job, done) => {
     try {
@@ -220,7 +227,7 @@ async function getLucky10(name, count, job){
     
     
     while(details_index <= count){
-      docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`).limit(10000).get());
+      docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`).limit(1000).get());
       progress += 1;
       job.progress({current: progress, remaining: 0});
       details_index++;
