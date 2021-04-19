@@ -48,9 +48,20 @@ var fonts = {
 		  { text: ' ', alignment: 'left', fontSize: 18,  bold:true},
 		  { text: ' ', alignment: 'left', fontSize: 18,  bold:true},
 		  { text: ' ', alignment: 'left', fontSize: 18,  bold:true},
-		  { text: 'Organization/Name/Signature/Date', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
-		  { text: 'Organization/Name/Signature/Date', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Organization/Name/Signature/Date', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5}
+		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
+		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: '', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
+		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: '', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
+		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
+		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5}
 		  
 	],
 	
