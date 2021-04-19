@@ -85,7 +85,7 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
     doc.forEach((doc) => {
       results.push(doc.data());
     });
-    const luckyWinners = pickRandom(results, { count: 10 });
+    const luckyWinners = pickRandom(results.reverse(), { count: 10 });
     storeRandomisedWinners(count, luckyWinners, name, weekDuration);
 
     res.status(200).send({ message: luckyWinners });
