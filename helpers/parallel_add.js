@@ -3,11 +3,19 @@ const admin = require("firebase-admin");
 const pickRandom = require("pick-random");
 const { logger } = require("../helpers/logger");
 const { firestore } = require("firebase-admin");
-
+const productionRedis = {
+  redis: {
+    port: 6379,
+    host: "127.0.0.1",
+    password:
+      process.env.REDIS_PASSWORD_RAFFLE,
+  },
+};
+const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", "redis://127.0.0.1:6379");
+let workQueue = new Queue("work", productionRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -127,6 +135,10 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
       })
     ).then((res) => logger.info("cleaned winners", res));
 
+    await firestore().collection('all_projects')
+    .doc(name).collection('week_state_draw')
+    .doc(`week_${count}`).set({randomised: true}, {merge: true});
+
     if (count == weekDuration) {
       const job = await workQueue.add({
         generateLucky10: true,
@@ -181,24 +193,39 @@ async function updateWeeklyState(count, name) {
 
 async function setDocumentCount(name, count, docsCount){
     try{
+        if(Number(count) === 1){
+          const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
+          const checkIfExits = await detailsCounter.get();
+          if(checkIfExits.exists){
+            const oldValue = Number(checkIfExits.data().current_count);
+            await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
+          }else{
+            await detailsCounter.set({current_count: docsCount}, {merge: true});
+          }
+
+          return;
+        }
+        
         if(Number(count) > 1){
+        
          const diff = Number(count) - 1;
-         const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${count}`);
+         const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
          const getOldCount = await oldCountStore.get();
          if(getOldCount.exists){
-          const incrementNewCount = Number(getOldCount.data()) + docsCount;
+          const incrementNewCount = Number(getOldCount.data().current_count) + docsCount;
           const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
-          await detailsCounter.set({current_count: incrementNewCount});
+          await detailsCounter.set({current_count: incrementNewCount}, {merge: true});
 
           const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
           .limit(10000).get();
           customerDetails.forEach(customer_details => datas.push(customer_details.data()));
          await storeMoreCustomerData(customerDetails, name, count);
          }
-        }else{ 
-          const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
-          await detailsCounter.set({current_count: docsCount});
+
+         return;
+
         }
+
     }catch(e){
         logger.info('Failed to reset counter after deleting collection', e);
     }
@@ -237,7 +264,7 @@ async function setDocumentCount(name, count, docsCount){
       const currentWeek = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
       const getWeekData = await currentWeek.get();
       if(getWeekData.exists){
-        const count = Number(getWeekData.data());
+        const count = Number(getWeekData.data().current_count);
         await currentWeek.set({current_count: (count - 10)},{merge: true});
       }
 

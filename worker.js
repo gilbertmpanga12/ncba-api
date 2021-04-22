@@ -11,17 +11,16 @@ const progress = require("request-progress");
 const {updateWeeklyState, setDocumentCount, deleteLucky3} = require('./helpers/parallel_add');
 const pickRandom = require('pick-random');
 const moment = require('moment');
-// process.env.REDIS_URL || "redis://127.0.0.1:6379";
-/*
-{
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  }
-*/
+const productionRedis = {
+  redis: {
+    port: 6379,
+    host: "127.0.0.1",
+    password:
+      process.env.REDIS_PASSWORD_RAFFLE,
+  },
+};
+const developmentRedis =  "redis://127.0.0.1:6379";
+
 let workers = process.env.WEB_CONCURRENCY || 2;
 
 let maxJobsPerWorker = 50;
@@ -33,7 +32,7 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", "redis://127.0.0.1:6379");
+  let workQueue = new Queue("work", productionRedis);
 
   workQueue.process(maxJobsPerWorker, async (job, done) => {
     try {
@@ -159,18 +158,16 @@ async function writePointsAndDetails(datas, name, count, job, done){
 
 async function deleteColletions(name, count, job){
   const operation = "DELETION";
-  let documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
-  let documentSnapshotArrayWinners =  await firestore().collection(`${name}_week_${count}_winners`).listDocuments();
+  const documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
+  const documentSnapshotArrayWinners =  await firestore().collection(`${name}_week_${count}_winners`).doc(`${count}`).delete();
+  const resetToZero = await firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`).set({current_count: 0}, {merge: true});
+
   const batchArrayDetails = [];
-  const batchWinners = [];
   batchArrayDetails.push(firestore().batch());
-  batchWinners.push(firestore().batch());
   let operationCounterDetails = 0;
   let batchIndexDetails = 0;
  
-  let operationCounterWinners = 0;
-  let batchIndexWinners = 0;
-  const totalDetailsWinnersCount = documentSnapshotArrayDetails.length + documentSnapshotArrayWinners.length;
+  const totalDetailsWinnersCount = documentSnapshotArrayDetails.length;
   
 
 
@@ -186,22 +183,12 @@ async function deleteColletions(name, count, job){
         operationCounterDetails = 0;
       }
     });
-
-   
-    if(documentSnapshotArrayWinners.length >= 1){
-      let counter_progress = operationCounterDetails;
-      documentSnapshotArrayWinners.forEach((csv_doc) => {
-        batchWinners[batchIndexWinners].delete(csv_doc);
-        operationCounterWinners++;
-        counter_progress += operationCounterWinners;
-        job.progress({current: counter_progress, remaining: 0, operationType: operation, 
-          count:count, name:name, docsCount: totalDetailsWinnersCount});
-      });
-      batchWinners.forEach(async (batch) => await batch.commit());
-    }
     
   
-    batchArrayDetails.forEach(async (batch) => await batch.commit());
+    const enableRandomiseButton = batchArrayDetails.forEach(async (batch) => await batch.commit());
+    await firestore().collection('all_projects')
+    .doc(name).collection('week_state_draw')
+    .doc(`week_${count}`).set({randomised: false}, {merge: true});
     job.progress({current: 100, remaining:100, operationType: operation, count:count, name:name, docsCount: totalDetailsWinnersCount});
   
 }
