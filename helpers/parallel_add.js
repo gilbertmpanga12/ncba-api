@@ -114,7 +114,8 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
       .collection(`${name}_week_${count}_winners`)
       .doc(`${count}`)
       .set({ winners: luckyWinners }, { merge: true });
-    clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
+      await reduceBy10AfterRandomization(name, count);
+    await clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
   } catch (e) {
     logger.info("Store randomised luck winners error", e);
   }
@@ -133,7 +134,6 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
     ).then((res) => logger.info("cleaned winners", res));
 
     if (count == weekDuration) {
-      console.log("week durantion has been called", count == weekDuration);
       const job = await workQueue.add({
         generateLucky10: true,
         count: count,
@@ -203,6 +203,20 @@ async function setDocumentCount(name, count, docsCount){
     }catch(e){
         logger.info('Failed to reset counter after deleting collection', e);
     }
+    }
+
+    async function reduceBy10AfterRandomization(name, count){
+      try{
+      const currentWeek = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
+      const getWeekData = await currentWeek.get();
+      if(getWeekData.exists){
+        const count = Number(getWeekData.data());
+        await currentWeek.set({current_count: (count - 10)},{merge: true});
+      }
+
+      }catch(e){
+        logger.info("Failed to reduce weekly randomised customers");
+      }
     }
 
 
