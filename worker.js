@@ -33,14 +33,7 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", {
-    redis: {
-      port: 6379,
-      host: "127.0.0.1",
-      password:
-        process.env.REDIS_PASSWORD_RAFFLE,
-    },
-  });
+  let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
   workQueue.process(maxJobsPerWorker, async (job, done) => {
     try {
@@ -114,14 +107,12 @@ function start() {
           }
         })
         .on("end", async function (data) {
-
-          if(parseInt(count) > 1){
-            const diff = count - 1;
-            const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).limit(10000).get();
-            customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-          }
+          // if(parseInt(count) > 1){
+          //   const diff = count - 1;
+          //   const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).limit(10000).get();
+          //   customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+          // }
  
-
           if(parseInt(count) === parseInt(weekDuration)){
             writePointsAndDetails(datas, name, count, job, done);
             return;

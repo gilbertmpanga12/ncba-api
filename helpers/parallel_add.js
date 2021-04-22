@@ -7,14 +7,7 @@ const { firestore } = require("firebase-admin");
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", {
-  redis: {
-    port: 6379,
-    host: "127.0.0.1",
-    password:
-      process.env.REDIS_PASSWORD_RAFFLE,
-  },
-});
+let workQueue = new Queue("work", "redis://127.0.0.1:6379");
 
 async function ParallelIndividualWrites(
   url,
@@ -115,6 +108,7 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
       .doc(`${count}`)
       .set({ winners: luckyWinners }, { merge: true });
       await reduceBy10AfterRandomization(name, count);
+      // disable randomizaition
     await clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
   } catch (e) {
     logger.info("Store randomised luck winners error", e);
@@ -195,6 +189,11 @@ async function setDocumentCount(name, count, docsCount){
           const incrementNewCount = Number(getOldCount.data()) + docsCount;
           const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
           await detailsCounter.set({current_count: incrementNewCount});
+
+          const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
+          .limit(10000).get();
+          customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+         await storeMoreCustomerData(customerDetails, name, count);
          }
         }else{ 
           const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
@@ -203,6 +202,34 @@ async function setDocumentCount(name, count, docsCount){
     }catch(e){
         logger.info('Failed to reset counter after deleting collection', e);
     }
+    }
+
+
+
+
+    async function storeMoreCustomerData(datas, name, count){
+      const operation = "DATA_CREATION";
+      const documentSnapshotArray = datas;
+      const total_count = datas.length;
+      const batchArrayDetails = [];
+      batchArrayDetails.push(firestore().batch());
+      let operationCounter = 0;
+      let batchIndex = 0;
+      documentSnapshotArray.forEach((csv_doc) => {
+        const uid = `${csv_doc['Loan Reference']}`.trim();
+        const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+        batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
+        operationCounter++;
+        
+    
+        if (operationCounter === 499) {
+          batchArrayDetails.push(firestore().batch());
+          batchIndex++;
+          operationCounter = 0;
+        }
+      });
+    
+      batchArrayDetails.forEach(async (batch) => await batch.commit());
     }
 
     async function reduceBy10AfterRandomization(name, count){
