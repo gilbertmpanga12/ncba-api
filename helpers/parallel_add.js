@@ -187,8 +187,19 @@ async function updateWeeklyState(count, name) {
 
 async function setDocumentCount(name, count, docsCount){
     try{
-        const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
-        await detailsCounter.set({current_count: docsCount});
+        if(Number(count) > 1){
+         const diff = Number(count) - 1;
+         const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${count}`);
+         const getOldCount = await oldCountStore.get();
+         if(getOldCount.exists){
+          const incrementNewCount = Number(getOldCount.data()) + docsCount;
+          const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
+          await detailsCounter.set({current_count: incrementNewCount});
+         }
+        }else{ 
+          const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
+          await detailsCounter.set({current_count: docsCount});
+        }
     }catch(e){
         logger.info('Failed to reset counter after deleting collection', e);
     }

@@ -117,7 +117,7 @@ function start() {
 
           if(parseInt(count) > 1){
             const diff = count - 1;
-            const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).get();
+            const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).limit(10000).get();
             customerDetails.forEach(customer_details => datas.push(customer_details.data()));
           }
  
