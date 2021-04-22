@@ -11,6 +11,7 @@ const progress = require("request-progress");
 const {updateWeeklyState, setDocumentCount, deleteLucky3} = require('./helpers/parallel_add');
 const pickRandom = require('pick-random');
 const moment = require('moment');
+// SYSTEM PATCH
 const productionRedis = {
   redis: {
     port: 6379,
