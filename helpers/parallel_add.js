@@ -130,7 +130,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
       .collection(`${name}_week_${count}_customer_details`);
     await Promise.all(
       luckyWinners.map((winner) => {
-        const uid = winner["Customer Number"];
+        const uid = winner["Id"];
         customer_details.doc(uid).delete();
       })
     ).then((res) => logger.info("cleaned winners", res));
@@ -242,7 +242,7 @@ async function setDocumentCount(name, count, docsCount, operationType){
       let operationCounter = 0;
       let batchIndex = 0;
       documentSnapshotArray.forEach((csv_doc) => {
-        const uid = `${csv_doc['Customer Number']}`.trim();
+        const uid = `${csv_doc['Id']}`.trim();
         const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
         batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
         operationCounter++;
@@ -291,15 +291,15 @@ async function pickLucky3(name, res) {
     let lucky3 = pickRandom(winners, { count: 3 });
     // details
     lucky3.forEach((csv_doc) => {
-      const uid = `${csv_doc["Customer Number"]}`.trim();
+      const uid = `${csv_doc["Id"]}`.trim();
       firestore()
         .collection(`${name}_winner3_details`)
         .doc(uid)
         .set(csv_doc)
         .then((x) => x.writeTime);
     });
-
     res.status(200).send({ message: lucky3 });
+    
   } catch (e) {
     res.status(500).send({ message: "Failed to randomise lucky 3 winners" });
     logger.info("Failed to pick lucky 3", e);
@@ -316,7 +316,7 @@ async function deleteLucky3(name){
     let lucky3 = pickRandom(winners, { count: 3 });
     // details
     lucky3.forEach((csv_doc) => {
-      const uid = `${csv_doc["Customer Number"]}`.trim();
+      const uid = `${csv_doc["Id"]}`.trim();
       firestore()
         .collection(`${name}_winner3_details`)
         .doc(uid)
