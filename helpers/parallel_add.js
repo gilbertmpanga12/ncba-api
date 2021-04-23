@@ -130,7 +130,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
       .collection(`${name}_week_${count}_customer_details`);
     await Promise.all(
       luckyWinners.map((winner) => {
-        const uid = winner["Loan Reference"];
+        const uid = winner["Customer Number"];
         customer_details.doc(uid).delete();
       })
     ).then((res) => logger.info("cleaned winners", res));
@@ -167,14 +167,14 @@ async function getJobId(req, res) {
 
     if(progress['operationType'] === 'DATA_CREATION' && 
     progress['current'] === progress['remaining']){
-      setDocumentCount(name, count, docsCount);
+      setDocumentCount(name, count, docsCount, 'DATA_CREATION');
       return;
     }
 
     if(progress['operationType'] === 'DELETION' && 
     progress['current'] === progress['remaining']){
     updateWeeklyState(count, name);
-    setDocumentCount(name, count, 0);
+    setDocumentCount(name, count, 0, 'DELETION');
     deleteLucky3(name);
       return;
     }
@@ -191,46 +191,45 @@ async function updateWeeklyState(count, name) {
     .update({ state: false }, { merge: true });
 }
 
-async function setDocumentCount(name, count, docsCount){
-    try{
-        if(Number(count) === 1){
-          const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
-          const checkIfExits = await detailsCounter.get();
-          if(checkIfExits.exists){
-            const oldValue = Number(checkIfExits.data().current_count);
-            await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
-          }else{
-            await detailsCounter.set({current_count: docsCount}, {merge: true});
-          }
-
-          return;
-        }
-        
-        if(Number(count) > 1){
-        
-         const diff = Number(count) - 1;
-         const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
-         const getOldCount = await oldCountStore.get();
-         if(getOldCount.exists){
-          const incrementNewCount = Number(getOldCount.data().current_count) + docsCount;
-          const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
-          await detailsCounter.set({current_count: incrementNewCount}, {merge: true});
-
-          const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
-          .limit(10000).get();
-          customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-         await storeMoreCustomerData(customerDetails, name, count);
-         }
-
-         return;
-
+async function setDocumentCount(name, count, docsCount, operationType){
+  try{
+      if(Number(count) === 1 && operationType === "DATA_CREATION"){
+        const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
+        const checkIfExits = await detailsCounter.get();
+        if(checkIfExits.exists){
+          const oldValue = Number(checkIfExits.data().current_count);
+          await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
+        }else{
+          await detailsCounter.set({current_count: docsCount}, {merge: true});
         }
 
-    }catch(e){
-        logger.info('Failed to reset counter after deleting collection', e);
-    }
-    }
+        return;
+      }
+      
+      if(Number(count) > 1 && operationType === "DATA_CREATION"){
+      
+       const diff = Number(count) - 1;
+       const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
+       const getOldCount = await oldCountStore.get();
+       if(getOldCount.exists){
+        const incrementNewCount = Number(getOldCount.data().current_count) + docsCount;
+        const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
+        await detailsCounter.set({current_count: incrementNewCount}, {merge: true});
 
+        const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
+        .limit(10000).get();
+        customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+       await storeMoreCustomerData(customerDetails, name, count);
+       }
+
+       return;
+
+      }
+
+  }catch(e){
+      logger.info('Failed to reset counter after deleting collection', e);
+  }
+  }
 
 
 
@@ -243,7 +242,7 @@ async function setDocumentCount(name, count, docsCount){
       let operationCounter = 0;
       let batchIndex = 0;
       documentSnapshotArray.forEach((csv_doc) => {
-        const uid = `${csv_doc['Loan Reference']}`.trim();
+        const uid = `${csv_doc['Customer Number']}`.trim();
         const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
         batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
         operationCounter++;
@@ -292,7 +291,7 @@ async function pickLucky3(name, res) {
     let lucky3 = pickRandom(winners, { count: 3 });
     // details
     lucky3.forEach((csv_doc) => {
-      const uid = `${csv_doc["Loan Reference"]}`.trim();
+      const uid = `${csv_doc["Customer Number"]}`.trim();
       firestore()
         .collection(`${name}_winner3_details`)
         .doc(uid)
@@ -317,7 +316,7 @@ async function deleteLucky3(name){
     let lucky3 = pickRandom(winners, { count: 3 });
     // details
     lucky3.forEach((csv_doc) => {
-      const uid = `${csv_doc["Loan Reference"]}`.trim();
+      const uid = `${csv_doc["Customer Number"]}`.trim();
       firestore()
         .collection(`${name}_winner3_details`)
         .doc(uid)
