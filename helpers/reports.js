@@ -23,12 +23,12 @@ async function printPdf(fonts, docDefinition, res){
 		pdfDoc.end();
 		file.getSignedUrl(expirydate).then(url => {
 			const pdfUrl = url[0];
-			console.log(pdfUrl);
+			logger.info(pdfUrl);
 			res.status(200).json({pdfUrl: pdfUrl});
 			
 			});
 	}catch(e){
-		console.log('PDF CREATION ERROR', e);
+		logger.info('PDF CREATION ERROR', e);
 		res.status(500).send({message: e});
 	}
 }
@@ -77,13 +77,13 @@ async function printCsv(fullReuslts, res){
 	file.save(csv, function(err){
 	  if(err) throw err;
 	  file.getSignedUrl(expirydate).then(url => {
-		  console.log(url)
+		logger.info(url)
 		res.status(200).json({csvUrl: url[0]});
 	});
 	});
 	
   }catch(e){
-	console.log('CSV CREATION ERROR', e);
+	logger.info('CSV CREATION ERROR', e);
 		res.status(500).send({message: e});
   }
 

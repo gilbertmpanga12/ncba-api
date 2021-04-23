@@ -130,7 +130,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
       .collection(`${name}_week_${count}_customer_details`);
     await Promise.all(
       luckyWinners.map((winner) => {
-        const uid = winner["Id"];
+        const uid = winner['Customer Number'];
         customer_details.doc(uid).delete();
       })
     ).then((res) => logger.info("cleaned winners", res));
@@ -207,20 +207,28 @@ async function setDocumentCount(name, count, docsCount, operationType){
       }
       
       if(Number(count) > 1 && operationType === "DATA_CREATION"){
-      
        const diff = Number(count) - 1;
        const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
        const getOldCount = await oldCountStore.get();
-       if(getOldCount.exists){
-        const incrementNewCount = Number(getOldCount.data().current_count) + docsCount;
-        const detailsCounter = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
-        await detailsCounter.set({current_count: incrementNewCount}, {merge: true});
+       let _oldWeekCount = getOldCount.exists ? Number(getOldCount.data().current_count): 0;
 
-        const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
-        .limit(10000).get();
-        customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-       await storeMoreCustomerData(customerDetails, name, count);
+       const newWeekCollection = await firestore().collection(`${name}_week_${count}_counter`)
+       .doc(`${count}`);
+       const newWeekCount = await newWeekCollection.get();
+       if(!newWeekCount.exists || newWeekCount.data()['current_count'] === 0){
+       await newWeekCollection.set({current_count: (docsCount + _oldWeekCount)}, {merge: true});
+       }else{
+        await newWeekCollection.set({current_count: (Number(newWeekCount.data().current_count) 
+          + docsCount)}, {merge: true});
        }
+
+      
+
+       const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
+        .limit(7).get();
+       const datas = [];
+       customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+       await storeMoreCustomerData(datas, name, count);
 
        return;
 
@@ -234,15 +242,15 @@ async function setDocumentCount(name, count, docsCount, operationType){
 
 
     async function storeMoreCustomerData(datas, name, count){
-      const operation = "DATA_CREATION";
+      //const operation = "DATA_CREATION";
       const documentSnapshotArray = datas;
-      const total_count = datas.length;
+      //const total_count = datas.length;
       const batchArrayDetails = [];
       batchArrayDetails.push(firestore().batch());
       let operationCounter = 0;
       let batchIndex = 0;
       documentSnapshotArray.forEach((csv_doc) => {
-        const uid = `${csv_doc['Id']}`.trim();
+        const uid = `${csv_doc['Customer Number']}`;
         const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
         batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
         operationCounter++;
@@ -291,7 +299,7 @@ async function pickLucky3(name, res) {
     let lucky3 = pickRandom(winners, { count: 3 });
     // details
     lucky3.forEach((csv_doc) => {
-      const uid = `${csv_doc["Id"]}`.trim();
+      const uid = `${csv_doc['Customer Number']}`;
       firestore()
         .collection(`${name}_winner3_details`)
         .doc(uid)
@@ -316,7 +324,7 @@ async function deleteLucky3(name){
     let lucky3 = pickRandom(winners, { count: 3 });
     // details
     lucky3.forEach((csv_doc) => {
-      const uid = `${csv_doc["Id"]}`.trim();
+      const uid = `${csv_doc['Customer Number']}`;
       firestore()
         .collection(`${name}_winner3_details`)
         .doc(uid)

@@ -91,8 +91,7 @@ function start() {
                             "Customer Number": csv_data["Customer Number"].trim(),
                             "Loan Reference": csv_data["Loan Reference"].trim(),
                             "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
-                            "Loan Start Date": moment(csv_data["Loan Start Date"]).format(),
-                            "Id": nanoid(10)
+                            "Loan Start Date": moment(csv_data["Loan Start Date"]).format()
                           });
     
             }else{
@@ -137,7 +136,7 @@ async function writePointsAndDetails(datas, name, count, job, done){
   let operationCounter = 0;
   let batchIndex = 0;
   documentSnapshotArray.forEach((csv_doc) => {
-    const uid = `${csv_doc['Id']}`;
+    const uid = `${csv_doc['Customer Number']}`.trim();
     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
     batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
     operationCounter++;
@@ -229,7 +228,7 @@ async function getLucky10(name, count, job){
       progress++;
       job.progress({current: progress, remaining: 0});
       lucky_weekly_10_winners.forEach(csv_doc => {
-      const uid = `${csv_doc['Id']}`;
+      const uid = `${csv_doc['Customer Number']}`.trim();
       let details = firestore().collection(`${name}_grand_total_details`).doc(uid);
       details_batch.set(details, csv_doc);
       progress++;
