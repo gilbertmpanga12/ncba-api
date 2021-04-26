@@ -9,10 +9,7 @@ const port = 6000;
 const add_customer_numbers = require('./controllers/add_customer_ids');
 const reports = require('./controllers/reports');
 const {getFirebaseUser} = require('./helpers/firebaseSecurity');
-const writeToFile = require('./utilities/create_report');
-const stream = require("stream");
-const path = require('path');
-const fs = require("fs");
+
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -23,12 +20,6 @@ const limiter = rateLimit({
     max: 1000 // limit each IP to 100 requests per windowMs
 });
 
-const writeFile = fs.createWriteStream(path.join('./', `bitch_1.csv`));
-writeToFile('bitch', 2).pipe(writeFile).on("data", function(data){
-    console.log(data);
-}).on("finish", function(){
-    console.log("done!!!!!**");
-});
 
 
 
