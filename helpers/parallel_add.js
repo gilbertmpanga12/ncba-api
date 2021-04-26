@@ -224,11 +224,11 @@ async function setDocumentCount(name, count, docsCount, operationType){
 
       
 
-       const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
-        .limit(7).get();
-       const datas = [];
-       customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-       await storeMoreCustomerData(datas, name, count);
+      //  const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
+      //   .limit(7).get();
+      //  const datas = [];
+      //  customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+      //  await storeMoreCustomerData(datas, name, count);
 
        return;
 

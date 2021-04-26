@@ -3,9 +3,12 @@ const PdfPrinter = require('pdfmake');
 const { Parser } = require('json2csv');
 const expirydate = {action: 'read', expires: '03-09-2500'};
 const {nanoid} = require('nanoid');
-const { firestore } = require('firebase-admin');
 const {logger} = require('../helpers/logger');
-
+const writeToFile = require('../utilities/create_report');
+const fs = require('fs');
+const path = require('path');
+const mergeFile = require("merge-files");
+const { firestore } = require('firebase-admin');
 
 async function printPdf(fonts, docDefinition, res){
 	try{
@@ -33,37 +36,46 @@ async function printPdf(fonts, docDefinition, res){
 	}
 }
 
-async function getWeeklyCsv(count, name, res){
+ function getWeeklyCsv(count, name, res){
+	let outputFile = path.join('./', `weeks/${name}_week_${count}.csv`);
+	const createOutFile = fs.createWriteStream(outputFile);
+	writeToFile(name, count).pipe(createOutFile).on("finish", () => {
+		if(Number(count) > 1){
+			const outputChildFile = path.join('./', `weeks/${name}_week_${count}_child.csv`);
+			const createOutFileChild = fs.createWriteStream(outputChildFile);
+			writeToFile(name, count).pipe(createOutFileChild).on("finish", () => {
+				const mergedFilePath = `${name}_merged_week_${count}_diff_${count-1}`;
+				fileMerge([outputFile, outputChildFile], mergedFilePath);
+				return;
+			});
+		};
+		const _uploadFile= await uploadFile(outputFile);
+	});
+}
+
+
+async function fileMerge(inputPaths, outputFilePath){
 	try{
-		const results_array = [];
-		const winners_array= [];
-		const winners = await firestore().collection(`${name}_week_${count}_winners`).get();
-
-		winners.forEach(winner => {
-			const customer_data = winner.data();
-			winners_array.push({
-				"Customer Number": customer_data["Customer Number"],
-				"Loan Reference": customer_data["Loan Reference"],
-				"Loan Repaid Date": customer_data["Loan Repaid Date"],
-				"Loan Start Date": customer_data["Loan Start Date"]
-			  });
-		});
-
-		const results = await firestore().collection(`${name}_week_${count}_customer_details`).limit(80000).get();
-		results.forEach(customer => {
-			const customer_data = customer.data();
-			results_array.push({
-				"Customer Number": customer_data["Customer Number"],
-				"Loan Reference": customer_data["Loan Reference"],
-				"Loan Repaid Date": customer_data["Loan Repaid Date"],
-				"Loan Start Date": customer_data["Loan Start Date"]
-			  });// [customer_data['Customer Number'], customer_data['Loan Reference']]
-		});
-
-		results_array.push(...winners_array); // store back winners for that week
-		printCsv(results_array, res);
+		const operation = await mergeFile(inputPaths, outputFilePath);
+		const _uploadFile= await uploadFile(outputFilePath);
+		
 	}catch(e){
-		logger.info(e);
+		logger.info("Failed to merge files", e);
+		throw e;
+	}
+}
+
+
+async function uploadFile(outputFilePath){
+	try{
+		const uploadFile = await firebase.storage().bucket("wholesaleduuka-418f1.appspot.com")
+		.upload(outputFilePath);
+		const signUrl = await uploadFile[0].getSignedUrl(expirydate);
+		const url = signUrl[0];
+		// const storeInFirebase = await firestore().collection(``).doc(``).set({});
+	}catch(e){
+		logger.info("Failed to upload fiels to firebase", e);
+		return e;
 	}
 }
 
