@@ -45,20 +45,20 @@ async function printPdf(fonts, docDefinition, res){
 			const createOutFileChild = fs.createWriteStream(outputChildFile);
 			writeToFile(name, (count - 1)).pipe(createOutFileChild).on("finish", () => {
 				const mergedFilePath = path.join('./', `weeks/${name}_merged_week_${count}_diff_${count-1}.csv`);
-				fileMerge([outputFile, outputChildFile], mergedFilePath, name, count);
+				fileMerge([outputFile, outputChildFile], mergedFilePath, name, count, res);
 				return;
 			});
 		};
-		const _uploadFile= await uploadFile(outputFile, name, count);
+		const _uploadFile= await uploadFile(outputFile, name, count, res);
 	});
 }
 
 
-async function fileMerge(inputPaths, outputFilePath, name, count){
+async function fileMerge(inputPaths, outputFilePath, name, count, res){
 	try{
 		logger.info('mergging files')
 		const operation = await mergeFile(inputPaths, outputFilePath);
-		const _uploadFile= await uploadFile(outputFilePath, name, count);
+		const _uploadFile= await uploadFile(outputFilePath, name, count, res);
 		
 	}catch(e){
 		logger.info("Failed to merge files", e);
@@ -67,19 +67,20 @@ async function fileMerge(inputPaths, outputFilePath, name, count){
 }
 
 
-async function uploadFile(outputFilePath, name, count){
+async function uploadFile(outputFilePath, name, count, res){
 	try{
 		console.log('i have been triggred');
 		const uploadFile = await firebase.storage().bucket("wholesaleduuka-418f1.appspot.com")
 		.upload(outputFilePath);
 		const signUrl = await uploadFile[0].getSignedUrl(expirydate);
 		const url = signUrl[0];
-		console.log('My url', url);
+		res.status(200).send({csvUrl: url});
 		const storeInFirebase = await firestore()
 		.collection(`${name}_${count}_current_week_report`).doc(`${count}`).set({url: url},
 		 {merge: true});
 	}catch(e){
 		logger.info("Failed to upload fiels to firebase", e);
+		res.status(500).send({message: "Something went wrong while generating csv file"});
 		return e;
 	}
 }
