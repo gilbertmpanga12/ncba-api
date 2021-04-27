@@ -37,14 +37,14 @@ async function printPdf(fonts, docDefinition, res){
 }
 
  function getWeeklyCsv(count, name, res){
-	let outputFile = path.join('./', `weeks/${name}_week_${count}.csv`);
+	var outputFile = path.join('./', `weeks/${name}_week_${count}.csv`);
 	const createOutFile = fs.createWriteStream(outputFile);
-	writeToFile(name, count).pipe(createOutFile).on("finish", () => {
+	writeToFile(name, count).pipe(createOutFile).on("finish", async () => {
 		if(Number(count) > 1){
 			const outputChildFile = path.join('./', `weeks/${name}_week_${count}_child.csv`);
 			const createOutFileChild = fs.createWriteStream(outputChildFile);
-			writeToFile(name, count).pipe(createOutFileChild).on("finish", () => {
-				const mergedFilePath = `${name}_merged_week_${count}_diff_${count-1}`;
+			writeToFile(name, (count - 1)).pipe(createOutFileChild).on("finish", () => {
+				const mergedFilePath = path.join('./', `weeks/${name}_merged_week_${count}_diff_${count-1}.csv`);
 				fileMerge([outputFile, outputChildFile], mergedFilePath, name, count);
 				return;
 			});
@@ -56,6 +56,7 @@ async function printPdf(fonts, docDefinition, res){
 
 async function fileMerge(inputPaths, outputFilePath, name, count){
 	try{
+		logger.info('mergging files')
 		const operation = await mergeFile(inputPaths, outputFilePath);
 		const _uploadFile= await uploadFile(outputFilePath, name, count);
 		
@@ -68,10 +69,12 @@ async function fileMerge(inputPaths, outputFilePath, name, count){
 
 async function uploadFile(outputFilePath, name, count){
 	try{
+		console.log('i have been triggred');
 		const uploadFile = await firebase.storage().bucket("wholesaleduuka-418f1.appspot.com")
 		.upload(outputFilePath);
 		const signUrl = await uploadFile[0].getSignedUrl(expirydate);
 		const url = signUrl[0];
+		console.log('My url', url);
 		const storeInFirebase = await firestore()
 		.collection(`${name}_${count}_current_week_report`).doc(`${count}`).set({url: url},
 		 {merge: true});

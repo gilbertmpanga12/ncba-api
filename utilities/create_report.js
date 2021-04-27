@@ -3,13 +3,10 @@ const { firestore } = require('firebase-admin');
 const papaparse = require('papaparse');
 
 function writeToFile(name, count){
-    // Constatino_week_1_customer_details
-    // 23rdApril2021_week_1_customer_details
-    //customer_data.data()
     let firstOutput = true;
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
-    firestore().collection(`Constatino_week_1_customer_details`).get().then(data => {
+    firestore().collection(`${name}_week_${count}_customer_details`).get().then(data => {
         data.forEach(customer_data => {
           
             const outputCsv = papaparse.unparse([{
