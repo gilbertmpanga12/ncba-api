@@ -45,19 +45,19 @@ async function printPdf(fonts, docDefinition, res){
 			const createOutFileChild = fs.createWriteStream(outputChildFile);
 			writeToFile(name, count).pipe(createOutFileChild).on("finish", () => {
 				const mergedFilePath = `${name}_merged_week_${count}_diff_${count-1}`;
-				fileMerge([outputFile, outputChildFile], mergedFilePath);
+				fileMerge([outputFile, outputChildFile], mergedFilePath, name, count);
 				return;
 			});
 		};
-		const _uploadFile= await uploadFile(outputFile);
+		const _uploadFile= await uploadFile(outputFile, name, count);
 	});
 }
 
 
-async function fileMerge(inputPaths, outputFilePath){
+async function fileMerge(inputPaths, outputFilePath, name, count){
 	try{
 		const operation = await mergeFile(inputPaths, outputFilePath);
-		const _uploadFile= await uploadFile(outputFilePath);
+		const _uploadFile= await uploadFile(outputFilePath, name, count);
 		
 	}catch(e){
 		logger.info("Failed to merge files", e);
@@ -66,13 +66,15 @@ async function fileMerge(inputPaths, outputFilePath){
 }
 
 
-async function uploadFile(outputFilePath){
+async function uploadFile(outputFilePath, name, count){
 	try{
 		const uploadFile = await firebase.storage().bucket("wholesaleduuka-418f1.appspot.com")
 		.upload(outputFilePath);
 		const signUrl = await uploadFile[0].getSignedUrl(expirydate);
 		const url = signUrl[0];
-		// const storeInFirebase = await firestore().collection(``).doc(``).set({});
+		const storeInFirebase = await firestore()
+		.collection(`${name}_${count}_current_week_report`).doc(`${count}`).set({url: url},
+		 {merge: true});
 	}catch(e){
 		logger.info("Failed to upload fiels to firebase", e);
 		return e;
