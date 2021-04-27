@@ -88,7 +88,7 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
     const collection = admin
       .firestore()
       .collection(`${name}_week_${count}_customer_details`);
-    const doc = await collection.limit(80000).get();
+    const doc = await collection.limit(10000).get();
     const results = [];
     doc.forEach((doc) => {
       results.push(doc.data());
