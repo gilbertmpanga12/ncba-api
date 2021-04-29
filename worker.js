@@ -34,7 +34,7 @@ admin.initializeApp({
 });
 
 function start() {
-  let workQueue = new Queue("work", developmentRedis);
+  let workQueue = new Queue("work", productionRedis);
 
   workQueue.process(maxJobsPerWorker, async (job, done) => {
     try {
