@@ -77,10 +77,19 @@ function start() {
 
 
     openDatabase(name).then(client => {
+      let totalDocsCount = 0;
       const batch = new BatchStream({size: 500});
       const operation = "DATA_CREATION";
       job.progress({current: 0, remaining: -1, operationType: operation, 
       count:count, name:name, docsCount: 0});
+     // count data coming in
+      csvStream.on('data', (data) => {
+        totalDocsCount += 1;
+        job.progress({current: totalDocsCount, remaining:-1, operationType: operation, count:count, name:name, 
+          docsCount: totalDocsCount});
+      });
+
+      storeData(client.collection)  
       progress(request(url))
       .pipe(csvStream)
       .pipe(validateJSONData())
@@ -88,8 +97,8 @@ function start() {
        pipe(storeData(client.collection))
       .on("finish", () => {
         client.close();
-        job.progress({current: 100, remaining:100, operationType: operation, count:count, name:name, 
-          docsCount: 100});
+        job.progress({current: totalDocsCount, remaining:totalDocsCount, operationType: operation, count:count, name:name, 
+          docsCount: totalDocsCount});
         done();
       }).on("error", (err) => {
         logger.info("An error occured while finishing: => ", err);
