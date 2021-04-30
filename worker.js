@@ -9,9 +9,15 @@ const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
 const {updateWeeklyState, setDocumentCount, deleteLucky3} = require('./helpers/parallel_add');
+const storeData = require('./utilities/write_to_db');
+const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
 const moment = require('moment');
-// SYSTEM PATCH
+const MongoClient = require('mongodb').MongoClient;
+const mongodb_url = 'mongodb://localhost:27017';
+const BatchStream = require('batch-stream');
+const databaseName = 'ncba';
+
 const productionRedis = {
   redis: {
     port: 6379,
@@ -33,98 +39,67 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-function start() {
-  let workQueue = new Queue("work", productionRedis);
 
-  workQueue.process(maxJobsPerWorker, async (job, done) => {
-    try {
-      const datas = [];
-      const {url, name, count, operation, weekDuration} = job.data;
-      const generateLucky10 = job.data['generateLucky10'];
-      const csvStream = csv.createStream();
-      var duplicateCount = {};
-
-      if(operation === 'delete'){
-        deleteColletions(name, count, job);
-        return;
+function openDatabase(collectionName){
+  return  MongoClient.connect(mongodb_url).then(client => {
+    const db = client.db(databaseName);
+    const collection = db.collection(collectionName);
+    return {
+      collection,
+      close: () => {
+        return client.close();
       }
-
-      if(generateLucky10){
-        logger.info('Generate lucky 10 *****');
-        getLucky10(name, count, job);
-        return;
-      }
-
-      progress(request(url))
-        .on("progress", function (state) {
-          logger.info("progress", state);
-        })
-        .pipe(csvStream)
-        .on("error", function (err) {
-          logger.error(err);
-          job.progress('Oops an internal error occured, please contact support');
-        })
-        .on("data", function (csv_data) {
-          try{
-            if(csv_data["Customer Number"].trim() && 
-            csv_data["Loan Reference"].trim() && 
-            csv_data["Loan Repaid Date"].trim() 
-            && csv_data["Loan Start Date"].trim()){
-              // check for duplicates
-             
-              const key = csv_data["Loan Reference"].trim();
-  
-              if(duplicateCount[key] === 0){
-                duplicateCount[key]++;
-                          }else{
-                            duplicateCount[key] = 0;
-                           
-                          }
-              
-                        if(duplicateCount[key] >= 1){
-                            const eror_message = `Please check your csv file for duplicates`;
-                            job.progress(eror_message);
-                            throw Error(eror_message);
-                          }
-  
-                          datas.push({
-                            "Customer Number": csv_data["Customer Number"].trim(),
-                            "Loan Reference": csv_data["Loan Reference"].trim(),
-                            "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
-                            "Loan Start Date": moment(csv_data["Loan Start Date"]).format()
-                          });
-    
-            }else{
-              const eror_message = `Please check your csv file for missing 
-              blank customer numbers and empty fields`;
-              job.progress(eror_message);
-              throw Error(eror_message);
-            }
-          }catch(e){
-            const eror_message = `Please check your csv file for missing 
-            blank customer numbers and empty fields`;
-            job.progress(eror_message);
-            done(new Error(eror_message));
-          }
-        })
-        .on("end", async function (data) {
-          // if(parseInt(count) > 1){
-          //   const diff = count - 1;
-          //   const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).limit(10000).get();
-          //   customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-          // }
- 
-          if(parseInt(count) === parseInt(weekDuration)){
-            writePointsAndDetails(datas, name, count, job, done);
-            return;
-          }
-          
-          writePointsAndDetails(datas, name, count, job, done);
-        });
-    } catch (e) {
-      logger.info("WORKER ERROR", e);
-    }
+    };
   });
+}
+
+
+
+function start() {
+  let workQueue = new Queue("work", developmentRedis);
+  workQueue.process(function(job, done){
+
+    const {url, name, count, operation, weekDuration} = job.data;
+    const generateLucky10 = job.data['generateLucky10'];
+    const csvStream = csv.createStream();
+    //var duplicateCount = {};
+  
+    if(operation === 'delete'){
+      deleteColletions(name, count, job);
+      return;
+    }
+  
+    if(generateLucky10){
+      logger.info('Generate lucky 10 *****');
+      getLucky10(name, count, job);
+      return;
+    }
+
+
+    openDatabase(name).then(client => {
+      const batch = new BatchStream({size: 500});
+      const operation = "DATA_CREATION";
+      job.progress({current: 0, remaining: -1, operationType: operation, 
+      count:count, name:name, docsCount: 0});
+      progress(request(url))
+      .pipe(csvStream)
+      .pipe(validateJSONData())
+      .pipe(batch).
+       pipe(storeData(client.collection))
+      .on("finish", () => {
+        client.close();
+        job.progress({current: 100, remaining:100, operationType: operation, count:count, name:name, 
+          docsCount: 100});
+        done();
+      }).on("error", (err) => {
+        logger.info("An error occured while finishing: => ", err);
+      });
+    }).catch((err) => {
+      logger.info("Failed to open db: => ",err);
+    });
+  });
+
+  
 }
 
 async function writePointsAndDetails(datas, name, count, job, done){
