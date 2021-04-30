@@ -1,5 +1,6 @@
 const { logger } = require('../helpers/logger');
 const openDatabase = require('../utilities/mongo_client');
+// let numRecords = 0;
 
 function generateReport(name,count, res){
     if(Number(count) > 1){
@@ -24,9 +25,11 @@ function readDatabaseCursor(cursor){
     return cursor.next().then(record => {
         if(record){
             // do something here;
+            console.log(record);
+            console.log('Number of records', numRecords);
             return readDatabaseCursor(cursor);
         }else{
-            // nothing to process;
+            // no more records;
         }
     });
 }
@@ -42,6 +45,8 @@ function queryAdditionalWeeks(name, count){
        return readDatabaseCursor(report).then(() => client.close());
     })
 }
+
+
 
 
 module.exports= generateReport;
