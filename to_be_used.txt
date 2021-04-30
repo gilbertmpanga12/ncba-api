@@ -1,0 +1,72 @@
+try {
+   
+
+    progress(request(url))
+      .on("progress", function (state) {
+        logger.info("progress", state);
+      })
+      .pipe(csvStream)
+      .on("error", function (err) {
+        logger.error(err);
+        job.progress('Oops an internal error occured, please contact support');
+      })
+      .on("data", function (csv_data) {
+        try{
+          if(csv_data["Customer Number"].trim() && 
+          csv_data["Loan Reference"].trim() && 
+          csv_data["Loan Repaid Date"].trim() 
+          && csv_data["Loan Start Date"].trim()){
+            // check for duplicates
+           
+            const key = csv_data["Loan Reference"].trim();
+
+            if(duplicateCount[key] === 0){
+              duplicateCount[key]++;
+                        }else{
+                          duplicateCount[key] = 0;
+                         
+                        }
+            
+                      if(duplicateCount[key] >= 1){
+                          const eror_message = `Please check your csv file for duplicates`;
+                          job.progress(eror_message);
+                          throw Error(eror_message);
+                        }
+
+                        datas.push({
+                          "Customer Number": csv_data["Customer Number"].trim(),
+                          "Loan Reference": csv_data["Loan Reference"].trim(),
+                          "Loan Repaid Date": moment(csv_data["Loan Repaid Date"]).format(),
+                          "Loan Start Date": moment(csv_data["Loan Start Date"]).format()
+                        });
+  
+          }else{
+            const eror_message = `Please check your csv file for missing 
+            blank customer numbers and empty fields`;
+            job.progress(eror_message);
+            throw Error(eror_message);
+          }
+        }catch(e){
+          const eror_message = `Please check your csv file for missing 
+          blank customer numbers and empty fields`;
+          job.progress(eror_message);
+          done(new Error(eror_message));
+        }
+      })
+      .on("end", async function (data) {
+        // if(parseInt(count) > 1){
+        //   const diff = count - 1;
+        //   const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`).limit(10000).get();
+        //   customerDetails.forEach(customer_details => datas.push(customer_details.data()));
+        // }
+
+        if(parseInt(count) === parseInt(weekDuration)){
+          writePointsAndDetails(datas, name, count, job, done);
+          return;
+        }
+        
+        writePointsAndDetails(datas, name, count, job, done);
+      });
+  } catch (e) {
+    logger.info("WORKER ERROR", e);
+  }

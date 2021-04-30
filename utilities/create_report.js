@@ -2,7 +2,8 @@ const stream = require('stream');
 const papaparse = require('papaparse');
 const fs = require('fs');
 
-function writeToFile(record, outpathFile, hasFinished){
+
+function writeToFile(outpathFile, res, hasFinished){
     let firstOutput = true;
     const writeStream = new stream.Writable({objectMode: true});
     const fileOutputStream = fs.createWriteStream(outpathFile);
@@ -14,14 +15,13 @@ function writeToFile(record, outpathFile, hasFinished){
     firstOutput = false;
     callback();
     };
-
-    if(hasFinished){
-        console.log('I am done!!!!');
+    writeStream.on("finish", () => {
+        console.log('I am done!!!! creating file');
         fileOutputStream.end();
-        writeStream.end();
-    }
-    
-
+        // res.status(200).send({csvUrl:})
+        
+    })
+  
     return writeStream;
 }
 

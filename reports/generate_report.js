@@ -1,48 +1,57 @@
 const { logger } = require('../helpers/logger');
 const openDatabase = require('../utilities/mongo_client');
-// let numRecords = 0;
+const stream = require('stream');
+const writeToFile = require('../utilities/create_report');
+const path = require('path');
+
 
 function generateReport(name,count, res){
     if(Number(count) > 1){
         queryAdditionalWeeks(name, count)
         return;
     }
-    queryFirstWeek(name, count);
+    queryFirstWeek(name, count, res);
 }
 
 
-function queryFirstWeek(name, count){
+function queryFirstWeek(name, count, res){
+    const outputpath = __dirname + `/${name}_week_${count}_batch.csv`;
+    const readStream = new stream.Readable({objectMode: true});
+    readStream._read = () => {};
+    readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => console.log("bitch am done"));
     openDatabase(`${name}_week_${count}_customer_details`).then(client => {
         const cursor = client.collection.find({});
-        return readDatabaseCursor(cursor).then(() => client.close());
+        return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     }).catch(err => {
         logger.info(err);
     });
 }
 
 // readdatabse cursor for first week
-function readDatabaseCursor(cursor){
+function readDatabaseCursor(cursor, path, res, readStream){
     return cursor.next().then(record => {
         if(record){
-            // do something here;
-            console.log(record);
-            console.log('Number of records', numRecords);
-            return readDatabaseCursor(cursor);
+            readStream.push(record);
+            return readDatabaseCursor(cursor, path, res, readStream);
         }else{
-            // no more records;
+            readStream.push(null);
         }
     });
 }
 
 
-function queryAdditionalWeeks(name, count){
+function queryAdditionalWeeks(name, count, res){
+    const outputpath = path.join('./', 'weeks/' + `${name}_week_${count}_batch.csv`);
+    const readStream = new stream.Readable({objectMode: true});
+    readStream._read = () => {};
+    readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => console.log("bitch am done"));
     openDatabase(`${name}_week_${count}_customer_details`).then(client => {
         const pipeline = [
             { "$project": { "Customer Number": true, "Loan Reference": true , "Loan Repaid Date": true, "Loan Start Date": true} },
             { "$unionWith": `${name}_week_${count - 1}_customer_details` }
         ];
        const report = client.collection.aggregate(pipeline);
-       return readDatabaseCursor(report).then(() => client.close());
+       return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
     })
 }
 
