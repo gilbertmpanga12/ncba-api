@@ -2,7 +2,6 @@ const { logger } = require('../helpers/logger');
 const openDatabase = require('../utilities/mongo_client');
 const stream = require('stream');
 const writeToFile = require('../utilities/create_report');
-const path = require('path');
 const expirydate = {action: 'read', expires: '03-09-2500'};
 const firebase = require('firebase-admin');
 

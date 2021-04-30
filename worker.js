@@ -82,10 +82,15 @@ function start() {
       .pipe(batch).
        pipe(storeData(client.collection))
       .on("finish", () => {
-        client.close();
-        job.progress({current: totalDocsCount, remaining:totalDocsCount, operationType: operation, count:count, name:name, 
-          docsCount: totalDocsCount});
-        done();
+        const datas = [];
+        const getSample = client.collection.find({}).limit(100_000);
+        getSample.forEach(sample => datas.push(sample));
+        writePointsAndDetails(datas, name, count, job, done).then(() => {
+          client.close();
+          job.progress({current: totalDocsCount, remaining:totalDocsCount, operationType: operation, count:count, name:name, 
+            docsCount: totalDocsCount});
+          done();
+        });
       }).on("error", (err) => {
         logger.info("An error occured while finishing: => ", err);
       });
@@ -98,6 +103,7 @@ function start() {
 }
 
 async function writePointsAndDetails(datas, name, count, job, done){
+ try{
   const operation = "DATA_CREATION";
   const documentSnapshotArray = datas;
   const total_count = datas.length;
@@ -125,6 +131,10 @@ async function writePointsAndDetails(datas, name, count, job, done){
   job.progress({current: total_count, remaining:total_count, operationType: operation, count:count, name:name, 
     docsCount: total_count});
   done();
+  return true;
+ }catch(e){
+   throw e;
+ }
 }
 
 
