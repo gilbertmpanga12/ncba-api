@@ -30,8 +30,8 @@ app.use(limiter);
 app.use(bodyParser.json());
 app.get('/ncba-api/refresh-token', getFirebaseUser, (req, res) => 
 res.status(200).json({status: true, ...req.user}));
-app.use('/ncba-api/api',getFirebaseUser,  add_customer_numbers); // ++ firebase user
-app.use('/ncba-api/api/reports',getFirebaseUser, reports); // ++ firebase user
+app.use('/ncba-api/api',getFirebaseUser,  add_customer_numbers);
+app.use('/ncba-api/api/reports',getFirebaseUser, reports);
 app.get('/ncba-api', (req, res) => res.send({message: "Raffle app active"}));
 
 
