@@ -8,7 +8,6 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const {updateWeeklyState, setDocumentCount, deleteLucky3} = require('./helpers/parallel_add');
 const storeData = require('./utilities/write_to_db');
 const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
@@ -41,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work", developmentRedis);
+  let workQueue = new Queue("work", productionRedis);
   workQueue.process(function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
