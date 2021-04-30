@@ -13,10 +13,9 @@ const storeData = require('./utilities/write_to_db');
 const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
 const moment = require('moment');
-const MongoClient = require('mongodb').MongoClient;
-const mongodb_url = 'mongodb://localhost:27017';
+const openDatabase = require('./utilities/mongo_client');
 const BatchStream = require('batch-stream');
-const databaseName = 'ncba';
+
 
 const productionRedis = {
   redis: {
@@ -39,19 +38,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-
-function openDatabase(collectionName){
-  return  MongoClient.connect(mongodb_url).then(client => {
-    const db = client.db(databaseName);
-    const collection = db.collection(collectionName);
-    return {
-      collection,
-      close: () => {
-        return client.close();
-      }
-    };
-  });
-}
 
 
 
@@ -76,7 +62,7 @@ function start() {
     }
 
 
-    openDatabase(name).then(client => {
+    openDatabase(`${name}_week_${count}_customer_details`).then(client => {
       let totalDocsCount = 0;
       const batch = new BatchStream({size: 500});
       const operation = "DATA_CREATION";

@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 const {printCsv, printPdf, getWeeklyCsv} = require('../helpers/reports');
-
+const generateReport = require('../reports/generate_report');
 /*
 ,
 	footer: {
@@ -114,7 +114,7 @@ router.post('/generate-csv', async (req,res) => {
 
 router.post('/generate-weekly-csv', async (req,res) => {
     const {count, name} = req.body;
-	getWeeklyCsv(count, name, res);
+	generateReport(name, count, res);
 });
 
 
