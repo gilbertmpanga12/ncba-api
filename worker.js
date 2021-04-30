@@ -12,7 +12,6 @@ const {updateWeeklyState, setDocumentCount, deleteLucky3} = require('./helpers/p
 const storeData = require('./utilities/write_to_db');
 const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
-const moment = require('moment');
 const openDatabase = require('./utilities/mongo_client');
 const BatchStream = require('batch-stream');
 
