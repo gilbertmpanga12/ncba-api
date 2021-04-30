@@ -82,15 +82,19 @@ function start() {
       .pipe(batch).
        pipe(storeData(client.collection))
       .on("finish", () => {
-        const datas = [];
-        const getSample = client.collection.find({}).limit(100_000);
-        getSample.forEach(sample => datas.push(sample));
-        writePointsAndDetails(datas, name, count, job, done).then(() => {
-          client.close();
-          job.progress({current: totalDocsCount, remaining:totalDocsCount, operationType: operation, count:count, name:name, 
-            docsCount: totalDocsCount});
-          done();
-        });
+        openDatabase(`${name}_week_${count}_customer_details`).then((newclient) => {
+        const getSample =  newclient.collection.find().limit(10000).toArray(); // client.collection.find();//limit(80000)
+        getSample.then(results => {
+          writePointsAndDetails(results.reverse(), name, count, job, done).then(() => {
+          job.progress({current: totalDocsCount, remaining:totalDocsCount, 
+              operationType: operation, count:count, name:name, 
+              docsCount: totalDocsCount});
+            done();
+            client.close();
+          });
+        }).catch(err => console.log("Failed to query", e));
+      
+        }).catch(err => logger.info("Failed to store adtition data to firebase"));
       }).on("error", (err) => {
         logger.info("An error occured while finishing: => ", err);
       });

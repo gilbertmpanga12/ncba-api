@@ -45,7 +45,7 @@ function queryAdditionalWeeks(name, count, res){
     const outputpath = __dirname + `/${name}_week_${count}_batch.csv`;
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
-    readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => console.log("bitch am done"));
+    readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
     openDatabase(`${name}_week_${count}_customer_details`).then(client => {
         const pipeline = [
             { "$project": { "Customer Number": true, "Loan Reference": true , "Loan Repaid Date": true, "Loan Start Date": true} },
