@@ -8,7 +8,7 @@ const firebase = require('firebase-admin');
 
 function generateReport(name,count, res){
     if(Number(count) > 1){
-        queryAdditionalWeeks(name, count)
+        queryAdditionalWeeks(name, count, res);
         return;
     }
     queryFirstWeek(name, count, res);
@@ -22,7 +22,6 @@ function queryFirstWeek(name, count, res){
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
     openDatabase(`${name}_week_${count}_customer_details`).then(client => {
         const cursor = client.collection.find();
-        console.log('first query curosr', cursor);
         return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     }).catch(err => {
         logger.info(err);
@@ -54,7 +53,7 @@ function queryAdditionalWeeks(name, count, res){
         ];
        const report = client.collection.aggregate(pipeline);
        console.log('secondary repot', report);
-       return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
+       return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     })
 }
 
