@@ -84,7 +84,7 @@ function start() {
         const getSample =  newclient.collection.find().limit(10000).toArray(); // client.collection.find();//limit(80000)
         getSample.then(results => {
           writePointsAndDetails(results.reverse(), name, count, job, done).then(() => {
-          job.progress({current: totalDocsCount, remaining:totalDocsCount, 
+          job.progress({current: 100, remaining:100, 
               operationType: operation, count:count, name:name, 
               docsCount: totalDocsCount});
             done();
