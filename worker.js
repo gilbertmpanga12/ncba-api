@@ -69,6 +69,7 @@ function start() {
      // count data coming in
       csvStream.on('data', (data) => {
         totalDocsCount += 1;
+        console.log(data)
         job.progress({current: totalDocsCount, remaining:-1, operationType: operation, count:count, name:name, 
           docsCount: totalDocsCount});
       });
