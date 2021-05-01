@@ -21,7 +21,8 @@ function queryFirstWeek(name, count, res){
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
     openDatabase(`${name}_week_${count}_customer_details`).then(client => {
-        const cursor = client.collection.find({});
+        const cursor = client.collection.find();
+        console.log('first query curosr', cursor);
         return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     }).catch(err => {
         logger.info(err);
@@ -52,6 +53,7 @@ function queryAdditionalWeeks(name, count, res){
             { "$unionWith": `${name}_week_${count - 1}_customer_details` }
         ];
        const report = client.collection.aggregate(pipeline);
+       console.log('secondary repot', report);
        return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
     })
 }
