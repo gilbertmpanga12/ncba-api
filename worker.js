@@ -30,7 +30,6 @@ let workers = process.env.WEB_CONCURRENCY || 2;
 let maxJobsPerWorker = 50;
 
 const serviceAccount = require("./service-account.json");
-const { nanoid } = require('nanoid');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
