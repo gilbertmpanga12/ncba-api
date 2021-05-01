@@ -52,8 +52,7 @@ function queryAdditionalWeeks(name, count, res){
             { "$unionWith": `${name}_week_${count - 1}_customer_details` }
         ];
        const report = client.collection.aggregate(pipeline);
-       console.log('secondary repot', report);
-       return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
+       return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
     })
 }
 
