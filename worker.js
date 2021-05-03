@@ -40,7 +40,7 @@ admin.initializeApp({
 
 function start() {
   let workQueue = new Queue("work", productionRedis);
-  workQueue.process(function(job, done){
+  workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
     const generateLucky10 = job.data['generateLucky10'];
@@ -142,6 +142,7 @@ async function writePointsAndDetails(datas, name, count, job, done){
 
 async function deleteColletions(name, count, job){
   const operation = "DELETION";
+  const _dropMongoCollection = await deleteMongoCollection(name, count);
   const documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
   const documentSnapshotArrayWinners =  await firestore().collection(`${name}_week_${count}_winners`).doc(`${count}`).delete();
   const resetToZero = await firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`).set({current_count: 0}, {merge: true});
@@ -170,11 +171,23 @@ async function deleteColletions(name, count, job){
     
   
     const enableRandomiseButton = batchArrayDetails.forEach(async (batch) => await batch.commit());
-    await firestore().collection('all_projects')
+
+   const resetCount = await firestore().collection('all_projects')
     .doc(name).collection('week_state_draw')
     .doc(`week_${count}`).set({randomised: false}, {merge: true});
     job.progress({current: 100, remaining:100, operationType: operation, count:count, name:name, docsCount: totalDetailsWinnersCount});
   
+}
+
+
+async function deleteMongoCollection(name, count){
+  try{
+    const _collection = await openDatabase(`${name}_week_${count}_customer_details`);
+    const dropCollection = await _collection.collection.drop();
+    return true;
+  }catch(e){
+    return false;
+  }
 }
 
 
