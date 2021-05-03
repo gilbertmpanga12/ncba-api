@@ -29,7 +29,7 @@ function validateJSONData(){
         //     const error = new Error(error_message);
         //     callback(error);
         //     throw error;
-        }
+        
     }
     return transformStream;
 }
