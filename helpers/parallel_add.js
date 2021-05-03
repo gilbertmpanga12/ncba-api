@@ -3,6 +3,8 @@ const admin = require("firebase-admin");
 const pickRandom = require("pick-random");
 const { logger } = require("../helpers/logger");
 const { firestore } = require("firebase-admin");
+const openDatabase = require('../utilities/mongo_client');
+
 const productionRedis = {
   redis: {
     port: 6379,
@@ -125,9 +127,18 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
   try {
+    const collection = `${name}_week_${count}_customer_details`;
     const customer_details = admin
       .firestore()
-      .collection(`${name}_week_${count}_customer_details`);
+      .collection(collection);
+    const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
+    const filter = {
+      "Customer Number": {
+        "$in":  filterCustomerNumber
+      }
+    };
+    const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
+
     await Promise.all(
       luckyWinners.map((winner) => {
         const uid = winner['Customer Number'];
