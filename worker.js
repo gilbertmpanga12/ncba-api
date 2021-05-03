@@ -13,6 +13,7 @@ const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
 const openDatabase = require('./utilities/mongo_client');
 const BatchStream = require('batch-stream');
+const moment = require('moment');
 
 
 const productionRedis = {
@@ -127,7 +128,12 @@ async function writePointsAndDetails(datas, name, count, job, done){
   documentSnapshotArray.forEach((csv_doc) => {
     const uid = `${csv_doc['Customer Number']}`.trim();
     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-    batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
+    batchArrayDetails[batchIndex].set(documentDataDetails, {
+      "Customer Number": csv_doc["Customer Number"].trim(),
+      "Loan Reference": csv_doc["Loan Reference"].trim(),
+      "Loan Repaid Date": moment(csv_doc["Loan Repaid Date"]).format(),
+      "Loan Start Date": moment(csv_doc["Loan Start Date"]).format()
+    });
     operationCounter++;
     
     job.progress({current: operationCounter, remaining: total_count, operationType: operation, 

@@ -48,8 +48,22 @@ function queryAdditionalWeeks(name, count, res){
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
     openDatabase(`${name}_week_${count}_customer_details`).then(client => {
         const pipeline = [
-            { "$project": { "Customer Number": true, "Loan Reference": true , "Loan Repaid Date": true, "Loan Start Date": true} },
-            { "$unionWith": `${name}_week_${count - 1}_customer_details` }
+            { "$project": { 
+            "Customer Number": true, 
+            "Loan Reference": true , 
+            "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+            { "$unionWith": {
+                "coll": `${name}_week_${count - 1}_customer_details`,
+                "pipeline": [{
+                    "$project": { 
+                        "Customer Number": true, 
+                        "Loan Reference": true , 
+                        "Loan Repaid Date": true, 
+                        "Loan Start Date": true,
+                        "_id": 0}
+                }]
+            } },
+            
         ];
        const report = client.collection.aggregate(pipeline);
        return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
