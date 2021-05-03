@@ -68,7 +68,6 @@ function start() {
      // count data coming in
       csvStream.on('data', (data) => {
         totalDocsCount += 1;
-        console.log(data)
         job.progress({current: totalDocsCount, remaining:-1, operationType: operation, count:count, name:name, 
           docsCount: totalDocsCount});
       });
@@ -76,7 +75,10 @@ function start() {
       storeData(client.collection)  
       progress(request(url))
       .pipe(csvStream)
-      .pipe(validateJSONData())
+      .pipe(validateJSONData()).on("error", (e) => {
+        console.log("Something went wrong while validating", e);
+        job.progress(e);
+      })
       .pipe(batch).
        pipe(storeData(client.collection))
       .on("finish", () => {
@@ -90,9 +92,18 @@ function start() {
             done();
             client.close();
           });
-        }).catch(err => console.log("Failed to query", e));
+        }).catch(err => {
+          console.log("Failed to query", e);
+          const error = `An error occured while processing please try again`;
+          job.progress(error);
+        });
       
-        }).catch(err => logger.info("Failed to store adtition data to firebase"));
+        }).catch(err => {
+          const error = `Please check your csv file for missing 
+          blank customer numbers and empty fields`;
+          job.progress(error);
+          logger.info("Failed to store adtition data to firebase")
+        });
       }).on("error", (err) => {
         logger.info("An error occured while finishing: => ", err);
       });
