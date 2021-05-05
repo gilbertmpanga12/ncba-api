@@ -112,6 +112,9 @@ router.post('/generate-weekly-csv', async (req,res) => {
 router.post('/get-lucky-3-report/:type', async (req, res, next) => {
     const {name} = req.body;
 	const _docDefinition = Object.assign({}, docDefinition);
+	_docDefinition.content[1].table.body = [
+		[ 'Customer ID', 'Reference ID']
+	];
 	const type = req.params['type'];
     if(type === "csv"){
 		const _processReportsCsv = await getLuck3Report(name, type, fonts, _docDefinition, res);

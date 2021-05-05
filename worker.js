@@ -239,6 +239,16 @@ async function getLucky10(name, count, job){
       lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
       progress++;
       job.progress({current: progress, remaining: 0});
+
+      // check if winners already entred
+      const checkWinnersAlready = await firestore().collection(`${name}_grand_total_details`).get();
+      const checkerArray = [];
+      checkWinnersAlready.forEach(customer => checkerArray.push(customer));
+      if(checkerArray.length > 1){
+        job.progress({current: 100, remaining: 100});
+        return;
+      }
+
       lucky_weekly_10_winners.forEach(csv_doc => {
       const uid = `${csv_doc['Customer Number']}`.trim();
       let details = firestore().collection(`${name}_grand_total_details`).doc(uid);
@@ -246,6 +256,7 @@ async function getLucky10(name, count, job){
       progress++;
       job.progress({current: progress, remaining: 0});
     });
+
     details_batch.commit();
     job.progress({current: 100, remaining: 0});
   }catch(e){

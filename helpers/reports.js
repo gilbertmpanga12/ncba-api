@@ -12,9 +12,11 @@ const { firestore } = require('firebase-admin');
 
 async function printPdf(fonts, docDefinition, res){
 	try{
+		const bucketName = 'wholesaleduuka-418f1.appspot.com';
 		let printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
-		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
+		const bucket = firebase.storage().bucket(bucketName);
+		
 		const gcsname = `${nanoid(10)}.pdf`;
 		const file = bucket.file(gcsname);
 		let stream = file.createWriteStream({
@@ -113,15 +115,15 @@ async function getLuck3Report(name, type, fonts, docDefinition ,res){
 	  const winners = [];
 	  const lucky3Winners = await firestore().collection(`${name}_winner3_details`).get();
 	  lucky3Winners.forEach(winner => winners.push(winner.data()));
-	  console.log(winners);
 	  if(type === "csv"){
 		const _saveFile= await printCsv(winners, res);
-		return;
+	  }else{
+		const addItemsToPdfTable = winners.forEach(customer =>{
+			pdfTable.content[1].table.body.push([customer['Customer Number'],customer['Loan Reference']]); 
+		  });
+		  printPdf(fonts, pdfTable, res);
 	  }
-	  const addItemsToPdfTable = winners.forEach(customer =>{
-		pdfTable.content[1].table.body.push([customer['Customer Number'],customer['Loan Reference']]); 
-	  });
-	  printPdf(fonts, pdfTable, res);
+	  
 	}catch(e){
       res.status(500).send({message: "Failed to get lucky3 report " + e});
 	}
