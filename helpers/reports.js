@@ -1,7 +1,8 @@
 const firebase = require('firebase-admin');
 const PdfPrinter = require('pdfmake');
 const { Parser } = require('json2csv');
-const expirydate = {action: 'read', expires: '03-09-2500'};
+const expirydate = {action: 'read', 
+expires: Date.now() + 1000 * 60 * 100, version: 'v4'};
 const {nanoid} = require('nanoid');
 const {logger} = require('../helpers/logger');
 const writeToFile = require('../utilities/create_report');
@@ -12,6 +13,8 @@ const { firestore } = require('firebase-admin');
 
 async function printPdf(fonts, docDefinition, res){
 	try{
+		const _expirydate = {action: 'read', 
+        expires: Date.now() + 1000 * 60 * 100, version: 'v4'};
 		let printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
 		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
@@ -19,14 +22,19 @@ async function printPdf(fonts, docDefinition, res){
 		const file = bucket.file(gcsname);
 		let stream = file.createWriteStream({
 			metadata: {
-				contentType: 'application/pdf'
-			}
+			contentType: "application/pdf"
+			},
+			predefinedAcl: "publicRead"
 		});
 	    pdfDoc.pipe(stream);
 		pdfDoc.end();
-		file.getSignedUrl(expirydate).then(url => {
+		_expirydate['contentType'] = 'application/pdf';
+		_expirydate['promptSaveAs'] = gcsname;
+		
+		file.getSignedUrl(_expirydate).then(url => {
 			const pdfUrl = url[0];
-			logger.info(pdfUrl);
+			res.set('Content-Type', 'application/pdf');
+			res.set('Content-Disposition', 'attachment;' + gcsname);
 			res.status(200).json({pdfUrl: pdfUrl});
 			
 			});
@@ -94,6 +102,7 @@ async function printCsv(fullReuslts, res){
 	const file = bucket.file(gcsname);
 	file.save(csv, function(err){
 	  if(err) throw err;
+	  expirydate['contentType'] = 'text/csv';
 	  file.getSignedUrl(expirydate).then(url => {
 		logger.info(url)
 		res.status(200).json({csvUrl: url[0]});
@@ -108,7 +117,27 @@ async function printCsv(fullReuslts, res){
 }
 
 
+async function getLuck3Report(name, type, fonts, docDefinition ,res){
+	try{
+	  const pdfTable = docDefinition;
+	  const winners = [];
+	  const lucky3Winners = await firestore().collection(`${name}_winner3_details`).get();
+	  lucky3Winners.forEach(winner => winners.push(winner.data()));
+	  console.log(winners);
+	  if(type === "csv"){
+		const _saveFile= await printCsv(winners, res);
+		return;
+	  }
+	  const addItemsToPdfTable = winners.forEach(customer =>{
+		pdfTable.content[1].table.body.push([customer['Customer Number'],customer['Loan Reference']]); 
+	  });
+	  printPdf(fonts, pdfTable, res);
+	}catch(e){
+      res.status(500).send({message: "Failed to get lucky3 report " + e});
+	}
+  }
 
 
 
-module.exports = {printPdf, printCsv, getWeeklyCsv};
+
+module.exports = {printPdf, printCsv, getWeeklyCsv, getLuck3Report};

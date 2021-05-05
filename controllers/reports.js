@@ -2,15 +2,7 @@ const {Router} = require('express');
 const router = Router();
 const {printCsv, printPdf, getWeeklyCsv} = require('../helpers/reports');
 const generateReport = require('../reports/generate_report');
-/*
-,
-	footer: {
-		columns: [
-		  'NCBA',
-		  { text: 'Right part', alignment: 'right' }
-		]
-	  }
-*/
+const {getLuck3Report} = require('../helpers/reports');
 
 var fonts = {
 	Roboto: {
@@ -97,7 +89,6 @@ router.post('/generate-pdf', async (req,res) => {
 		[ 'Customer ID', 'Reference ID']
 	];
 	docDefinition.content[0].text = 'Randomised 10 Lucky Winners for this week';
-	console.log(randomisedWinners);
 	randomisedWinners.forEach(customer => {
 		docDefinition.content[1].table.body.push([customer['Customer Number'], customer['Loan Reference']]);
 	});
@@ -117,6 +108,18 @@ router.post('/generate-weekly-csv', async (req,res) => {
 	generateReport(name, count, res);
 });
 
+
+router.post('/get-lucky-3-report/:type', async (req, res, next) => {
+    const {name} = req.body;
+	const _docDefinition = Object.assign({}, docDefinition);
+	const type = req.params['type'];
+    if(type === "csv"){
+		const _processReportsCsv = await getLuck3Report(name, type, fonts, _docDefinition, res);
+		return;
+	}
+	_docDefinition.content[0].text = 'Randomised Lucky 3 Winners For Project '+ name;
+	const _processReportsPdf = await getLuck3Report(name, type, fonts, _docDefinition, res);
+});
 
 
 module.exports = router;

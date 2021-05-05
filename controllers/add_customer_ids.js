@@ -4,6 +4,7 @@ const {ParallelIndividualWrites, RandomiseLuckyWinners,
     AddWeekStates, getJobId, pickLucky3, currentWeek} = require('../helpers/parallel_add');
 
 
+
 router.post('/add-customer-details',  async (req, res) => {
     const {url, name, count, operation, weekDuration} = req.body;
     ParallelIndividualWrites(url, count, res, name, operation, weekDuration);
@@ -37,6 +38,8 @@ router.post('/pick-lucky-3', async (req, res, next) => {
     const {name} = req.body;
     pickLucky3(name, res);
 });
+
+
 
 router.post('/current-week', (req, res) => {
     const {count, name, page, docsCount} = req.body;

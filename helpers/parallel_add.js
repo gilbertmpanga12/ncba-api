@@ -17,7 +17,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", productionRedis);
+let workQueue = new Queue("work", developmentRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -324,6 +324,9 @@ async function pickLucky3(name, res) {
     logger.info("Failed to pick lucky 3", e);
   }
 }
+
+
+
 
 async function deleteLucky3(name){
   try{
