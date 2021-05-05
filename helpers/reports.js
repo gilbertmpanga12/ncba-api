@@ -1,8 +1,7 @@
 const firebase = require('firebase-admin');
 const PdfPrinter = require('pdfmake');
 const { Parser } = require('json2csv');
-const expirydate = {action: 'read', 
-expires: Date.now() + 1000 * 60 * 100, version: 'v4'};
+const expirydate = {action: 'read', expires: '03-09-2500'};
 const {nanoid} = require('nanoid');
 const {logger} = require('../helpers/logger');
 const writeToFile = require('../utilities/create_report');
@@ -13,8 +12,6 @@ const { firestore } = require('firebase-admin');
 
 async function printPdf(fonts, docDefinition, res){
 	try{
-		const _expirydate = {action: 'read', 
-        expires: Date.now() + 1000 * 60 * 100, version: 'v4'};
 		let printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
 		const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
@@ -22,19 +19,14 @@ async function printPdf(fonts, docDefinition, res){
 		const file = bucket.file(gcsname);
 		let stream = file.createWriteStream({
 			metadata: {
-			contentType: "application/pdf"
-			},
-			predefinedAcl: "publicRead"
+				contentType: 'application/pdf'
+			}
 		});
 	    pdfDoc.pipe(stream);
 		pdfDoc.end();
-		_expirydate['contentType'] = 'application/pdf';
-		_expirydate['promptSaveAs'] = gcsname;
-		
-		file.getSignedUrl(_expirydate).then(url => {
+		file.getSignedUrl(expirydate).then(url => {
 			const pdfUrl = url[0];
-			res.set('Content-Type', 'application/pdf');
-			res.set('Content-Disposition', 'attachment;' + gcsname);
+			logger.info(pdfUrl);
 			res.status(200).json({pdfUrl: pdfUrl});
 			
 			});
@@ -65,7 +57,6 @@ async function printPdf(fonts, docDefinition, res){
 
 async function fileMerge(inputPaths, outputFilePath, name, count, res){
 	try{
-		logger.info('mergging files')
 		const operation = await mergeFile(inputPaths, outputFilePath);
 		const _uploadFile= await uploadFile(outputFilePath, name, count, res);
 		
@@ -102,7 +93,6 @@ async function printCsv(fullReuslts, res){
 	const file = bucket.file(gcsname);
 	file.save(csv, function(err){
 	  if(err) throw err;
-	  expirydate['contentType'] = 'text/csv';
 	  file.getSignedUrl(expirydate).then(url => {
 		logger.info(url)
 		res.status(200).json({csvUrl: url[0]});
