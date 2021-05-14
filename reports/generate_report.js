@@ -4,6 +4,7 @@ const stream = require('stream');
 const writeToFile = require('../utilities/create_report');
 const expirydate = {action: 'read', expires: '03-09-2500'};
 const firebase = require('firebase-admin');
+const google_storage_bucket = "ncba-313413.appspot.com";
 
 
 function generateReport(name,count, res){
@@ -73,7 +74,7 @@ function queryAdditionalWeeks(name, count, res){
 
 async function uploadToStorage(filePath, res){
     try{
-        const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
+        const bucket = firebase.storage().bucket(google_storage_bucket);
         const _storeInBucket = await bucket.upload(filePath);
         const getUrl = await _storeInBucket[0].getSignedUrl(expirydate);
         const url = getUrl[0];

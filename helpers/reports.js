@@ -9,13 +9,13 @@ const fs = require('fs');
 const path = require('path');
 const mergeFile = require("merge-files");
 const { firestore } = require('firebase-admin');
+const google_storage_bucket = "ncba-313413.appspot.com";
 
 async function printPdf(fonts, docDefinition, res){
 	try{
-		const bucketName = 'wholesaleduuka-418f1.appspot.com';
 		let printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
-		const bucket = firebase.storage().bucket(bucketName);
+		const bucket = firebase.storage().bucket(google_storage_bucket);
 		
 		const gcsname = `${nanoid(10)}.pdf`;
 		const file = bucket.file(gcsname);
@@ -71,7 +71,7 @@ async function fileMerge(inputPaths, outputFilePath, name, count, res){
 
 async function uploadFile(outputFilePath, name, count, res){
 	try{
-		const uploadFile = await firebase.storage().bucket("wholesaleduuka-418f1.appspot.com")
+		const uploadFile = await firebase.storage().bucket(google_storage_bucket)
 		.upload(outputFilePath);
 		const signUrl = await uploadFile[0].getSignedUrl(expirydate);
 		const url = signUrl[0];
@@ -90,7 +90,7 @@ async function printCsv(fullReuslts, res){
   try{
 	const json2csvParser = new Parser();
 	const csv = json2csvParser.parse(fullReuslts);
-	const bucket = firebase.storage().bucket('wholesaleduuka-418f1.appspot.com');
+	const bucket = firebase.storage().bucket(google_storage_bucket);
 	  const gcsname = `${nanoid(10)}.csv`;
 	const file = bucket.file(gcsname);
 	file.save(csv, function(err){
