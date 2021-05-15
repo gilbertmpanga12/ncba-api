@@ -7,9 +7,9 @@ const firebase = require('firebase-admin');
 const google_storage_bucket = "ncba-313413.appspot.com";
 
 
-function generateReport(name,count, res){
+function generateReport(name,count, generateEntireReport, res){
     if(Number(count) > 1){
-        queryAdditionalWeeks(name, count, res);
+        queryAdditionalWeeks(name, count, generateEntireReport, res);
         return;
     }
     queryFirstWeek(name, count, res);
@@ -42,8 +42,9 @@ function readDatabaseCursor(cursor, path, res, readStream){
 }
 
 
-function queryAdditionalWeeks(name, count, res){
-    const outputpath = __dirname + `/${name}_week_${count}_batch.csv`;
+function queryAdditionalWeeks(name, count, generateEntireReport, res){
+    const allparticipants = __dirname + `/all_participants_${name}_week_batch.csv`;
+    const outputpath = generateEntireReport ? allparticipants : __dirname + `/${name}_week_${count}_batch.csv`;
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));

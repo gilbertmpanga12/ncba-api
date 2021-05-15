@@ -104,8 +104,8 @@ router.post('/generate-csv', async (req,res) => {
 });
 
 router.post('/generate-weekly-csv', async (req,res) => {
-    const {count, name} = req.body;
-	generateReport(name, count, res);
+    const {count, name, generateEntireReport} = req.body;
+	generateReport(name, count, generateEntireReport, res);
 });
 
 
