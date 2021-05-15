@@ -127,12 +127,13 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
   try {
-   if(count > 1){
-    let collection = `${name}_week_${count-1}_customer_details`;
     const customer_details = admin
       .firestore()
       .collection(collection);
     const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
+    
+   if(count > 1){
+    let collection = `${name}_week_${count-1}_customer_details`;
     const filter = {
       "Customer Number": {
         "$in":  filterCustomerNumber
