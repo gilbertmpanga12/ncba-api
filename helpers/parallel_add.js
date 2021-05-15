@@ -131,13 +131,13 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
     const customer_details = admin
       .firestore()
       .collection(collection);
-    // const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
-    // const filter = {
-    //   "Customer Number": {
-    //     "$in":  filterCustomerNumber
-    //   }
-    // };
-    // const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
+    const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
+    const filter = {
+      "Customer Number": {
+        "$in":  filterCustomerNumber
+      }
+    };
+    const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
 
     await Promise.all(
       luckyWinners.map((winner) => {
