@@ -127,7 +127,8 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
   try {
-    const collection = `${name}_week_${count}_customer_details`;
+   if(count > 1){
+    let collection = `${name}_week_${count-1}_customer_details`;
     const customer_details = admin
       .firestore()
       .collection(collection);
@@ -138,6 +139,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
       }
     };
     const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
+   }
 
     await Promise.all(
       luckyWinners.map((winner) => {
@@ -252,30 +254,30 @@ async function setDocumentCount(name, count, docsCount, operationType){
 
 
 
-    async function storeMoreCustomerData(datas, name, count){
-      //const operation = "DATA_CREATION";
-      const documentSnapshotArray = datas;
-      //const total_count = datas.length;
-      const batchArrayDetails = [];
-      batchArrayDetails.push(firestore().batch());
-      let operationCounter = 0;
-      let batchIndex = 0;
-      documentSnapshotArray.forEach((csv_doc) => {
-        const uid = `${csv_doc['Customer Number']}`;
-        const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-        batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
-        operationCounter++;
+    // async function storeMoreCustomerData(datas, name, count){
+    //   //const operation = "DATA_CREATION";
+    //   const documentSnapshotArray = datas;
+    //   //const total_count = datas.length;
+    //   const batchArrayDetails = [];
+    //   batchArrayDetails.push(firestore().batch());
+    //   let operationCounter = 0;
+    //   let batchIndex = 0;
+    //   documentSnapshotArray.forEach((csv_doc) => {
+    //     const uid = `${csv_doc['Customer Number']}`;
+    //     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
+    //     batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
+    //     operationCounter++;
         
     
-        if (operationCounter === 499) {
-          batchArrayDetails.push(firestore().batch());
-          batchIndex++;
-          operationCounter = 0;
-        }
-      });
+    //     if (operationCounter === 499) {
+    //       batchArrayDetails.push(firestore().batch());
+    //       batchIndex++;
+    //       operationCounter = 0;
+    //     }
+    //   });
     
-      batchArrayDetails.forEach(async (batch) => await batch.commit());
-    }
+    //   batchArrayDetails.forEach(async (batch) => await batch.commit());
+    // }
 
     async function reduceBy10AfterRandomization(name, count){
       try{
