@@ -47,25 +47,34 @@ function queryAdditionalWeeks(name, count, res){
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_${count}_customer_details`).then(client => {
+    openDatabase(`${name}_week_1_customer_details`).then(client => {
+        const unionCollections = [];
+        let start = 2;
+        while(start <= count){
+            unionCollections.push(
+                    { "$unionWith": {
+                        "coll": `${name}_week_${start}_customer_details`,
+                        "pipeline": [{
+                            "$project": { 
+                                "Customer Number": true, 
+                                "Loan Reference": true , 
+                                "Loan Repaid Date": true, 
+                                "Loan Start Date": true,
+                                "_id": 0}
+                        }]
+                    } }
+            );
+            start++;
+        }
+
         const pipeline = [
             { "$project": { 
-            "Customer Number": true, 
-            "Loan Reference": true , 
-            "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
-            { "$unionWith": {
-                "coll": `${name}_week_${count - 1}_customer_details`,
-                "pipeline": [{
-                    "$project": { 
-                        "Customer Number": true, 
-                        "Loan Reference": true , 
-                        "Loan Repaid Date": true, 
-                        "Loan Start Date": true,
-                        "_id": 0}
-                }]
-            } },
-            
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections
         ];
+        
        const report = client.collection.aggregate(pipeline);
        return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
     })
