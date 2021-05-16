@@ -17,7 +17,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work",  developmentRedis);
+let workQueue = new Queue("work",  productionRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -165,7 +165,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
         }
       };
       const _clearWinnersFromMongo = await (await openDatabase(`${name}_week_${count}_customer_details`,
-      `${name}_week_${count}_migration`)).collection.deleteMany(filter);
+      `${name}_week_${count}_migration`)).migration.deleteMany(filter);
 
     await Promise.all(
       luckyWinners.map((winner) => {
@@ -239,12 +239,15 @@ async function setDocumentCount(name, count, docsCount, operationType){
           const oldValue = Number(checkIfExits.data().current_count);
           await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
         }else{
-          openDatabase(`${name}_week_${count}_customer_details`,
-          `${name}_week_${count}_migration`).then(client => {
-            client.collection.countDocuments().then(count => {
-              detailsCounter.set({current_count: (docsCount + count)}, {merge: true}).then(() => null);
-            }).catch(err => logger.info("Failed to count", err));
-          }).catch(err => logger.info("Failed to get db for counting",err));
+          if(count > 1){
+            openDatabase(`${name}_week_${count}_customer_details`,
+            `${name}_week_${count}_migration`).then(client => {
+              client.collection.countDocuments().then(count => {
+                detailsCounter.set({current_count: (docsCount + count)}, {merge: true}).then(() => null);
+              }).catch(err => logger.info("Failed to count", err));
+            }).catch(err => logger.info("Failed to get db for counting",err));
+          }
+        await detailsCounter.set({current_count:docsCount}, {merge: true});
         }
 
         return;

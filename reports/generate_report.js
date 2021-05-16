@@ -21,7 +21,8 @@ function queryFirstWeek(name, count, res){
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_${count}_customer_details`).then(client => {
+    openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
         const cursor = client.collection.find();
         return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     }).catch(err => {
@@ -48,13 +49,14 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_1_customer_details`).then(client => {
+    openDatabase(`${name}_week_1_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
         const unionCollections = [];
         let start = 2;
         while(start <= count){
             unionCollections.push(
                     { "$unionWith": {
-                        "coll": `${name}_week_${start}_customer_details`,
+                        "coll": `${name}_week_${count}_migration`,
                         "pipeline": [{
                             "$project": { 
                                 "Customer Number": true, 
