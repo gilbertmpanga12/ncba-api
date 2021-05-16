@@ -47,15 +47,14 @@ function start() {
     const generateLucky10 = job.data['generateLucky10'];
     const csvStream = csv.createStream();
     //var duplicateCount = {};
-  
     if(operation === 'delete'){
-      deleteColletions(name, count, job);
+      deleteColletions(name, count, job, done);
       return;
     }
   
     if(generateLucky10){
       logger.info('Generate lucky 10 *****');
-      getLucky10(name, count, job);
+      getLucky10(name, count, job, done);
       return;
     }
 
@@ -164,7 +163,7 @@ async function writePointsAndDetails(datas, name, count, job, done){
 }
 
 
-async function deleteColletions(name, count, job){
+async function deleteColletions(name, count, job, done){
   const operation = "DELETION";
   const _dropMongoCollection = await deleteMongoCollection(name, count);
   const documentSnapshotArrayDetails = await firestore().collection(`${name}_week_${count}_customer_details`).listDocuments();
@@ -200,7 +199,9 @@ async function deleteColletions(name, count, job){
     .doc(name).collection('week_state_draw')
     .doc(`week_${count}`).set({randomised: false}, {merge: true});
     job.progress({current: 100, remaining:100, operationType: operation, count:count, name:name, docsCount: totalDetailsWinnersCount});
-  
+    done();
+    // job.discard()
+    
 }
 
 
@@ -268,9 +269,12 @@ async function getLucky10(name, count, job){
 
     details_batch.commit();
     job.progress({current: 100, remaining: 0});
+    done();
   }catch(e){
-    job.progress(`Picking lucky winners failed`);
-    logger.info('Error while picking lucky 10', e);
+    const message = `Picking lucky winners failed`;
+    job.progress(message);
+    done(new Error(message));
+    logger.info(message, e);
   }
   
 }

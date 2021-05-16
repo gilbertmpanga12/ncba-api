@@ -239,14 +239,6 @@ async function setDocumentCount(name, count, docsCount, operationType){
           const oldValue = Number(checkIfExits.data().current_count);
           await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
         }else{
-          if(count > 1){
-            openDatabase(`${name}_week_${count}_customer_details`,
-            `${name}_week_${count}_migration`).then(client => {
-              client.collection.countDocuments().then(count => {
-                detailsCounter.set({current_count: (docsCount + count)}, {merge: true}).then(() => null);
-              }).catch(err => logger.info("Failed to count", err));
-            }).catch(err => logger.info("Failed to get db for counting",err));
-          }
         await detailsCounter.set({current_count:docsCount}, {merge: true});
         }
 
@@ -256,14 +248,21 @@ async function setDocumentCount(name, count, docsCount, operationType){
       if(Number(count) > 1 && operationType === "DATA_CREATION"){
        const diff = Number(count) - 1;
        const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
-       const getOldCount = await oldCountStore.get();
-       let _oldWeekCount = getOldCount.exists ? Number(getOldCount.data().current_count): 0;
+      // const getOldCount = await oldCountStore.get();
+       //let _oldWeekCount = getOldCount.exists ? Number(getOldCount.data().current_count): 0;
 
        const newWeekCollection = await firestore().collection(`${name}_week_${count}_counter`)
        .doc(`${count}`);
        const newWeekCount = await newWeekCollection.get();
        if(!newWeekCount.exists || newWeekCount.data()['current_count'] === 0){
-       await newWeekCollection.set({current_count: (docsCount + _oldWeekCount)}, {merge: true});
+       //await newWeekCollection.set({current_count: (docsCount + _oldWeekCount)}, {merge: true});
+       openDatabase(`${name}_week_${count}_customer_details`,
+       `${name}_week_${count-1}_migration`).then(client => {
+         client.migration.countDocuments().then(migrationcount => {
+          newWeekCollection.set({current_count: (docsCount + migrationcount)}, {merge: true}).then(() => null);
+         }).catch(err => logger.info("Failed to count", err));
+       }).catch(err => logger.info("Failed to get db for counting",err));
+
        }else{
         await newWeekCollection.set({current_count: (Number(newWeekCount.data().current_count) 
           + docsCount)}, {merge: true});

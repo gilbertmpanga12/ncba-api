@@ -49,27 +49,24 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_1_customer_details`,
+    openDatabase(`${name}_week_${count}_customer_details`,
     `${name}_week_${count}_migration`).then(client => {
         const unionCollections = [];
-        let start = 2;
-        while(start <= count){
+        for(let start=count-1;start >= 1; start--){
             unionCollections.push(
-                    { "$unionWith": {
-                        "coll": `${name}_week_${count}_migration`,
-                        "pipeline": [{
-                            "$project": { 
-                                "Customer Number": true, 
-                                "Loan Reference": true , 
-                                "Loan Repaid Date": true, 
-                                "Loan Start Date": true,
-                                "_id": 0}
-                        }]
-                    } }
-            );
-            start++;
+                { "$unionWith": {
+                    "coll": `${name}_week_${start}_migration`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
         }
-
         const pipeline = [
             { "$project": { 
                 "Customer Number": true, 
@@ -78,7 +75,7 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
                 ...unionCollections
         ];
         
-       const report = client.collection.aggregate(pipeline);
+       const report = count > 1 ? client.collection.aggregate(pipeline): client.collection.find();
        return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
     })
 }
