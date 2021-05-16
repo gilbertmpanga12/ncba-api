@@ -8,7 +8,7 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const storeData = require('./utilities/write_to_db');
+const {storeData,storeMigrationData}= require('./utilities/write_to_db');
 const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
 const openDatabase = require('./utilities/mongo_client');
@@ -40,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work",  productionRedis);
+  let workQueue = new Queue("work",  developmentRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -79,7 +79,6 @@ function start() {
           docsCount: totalDocsCount});
       });
 
-      storeData(client.collection)  
       progress(request(url))
       .pipe(csvStream)
       .pipe(validateJSONData()).on("error", (e) => {
@@ -87,10 +86,11 @@ function start() {
         job.progress(e);
       })
       .pipe(batch).
-       pipe(storeData(client.collection))
+       pipe(storeData(client.collection)).
+       pipe(storeMigrationData(name, count))
       .on("finish", () => {
         openDatabase(`${name}_week_${count}_customer_details`).then((newclient) => {
-        const getSample =  newclient.collection.find().limit(10000).toArray(); // client.collection.find();//limit(80000)
+        const getSample =  newclient.collection.find().limit(300).toArray(); // client.collection.find();//limit(80000)
         getSample.then(results => {
           writePointsAndDetails(results.reverse(), name, count, job, done).then(() => {
           job.progress({current: 100, remaining:100, 
@@ -100,7 +100,7 @@ function start() {
             client.close();
           });
         }).catch(err => {
-          console.log("Failed to query", e);
+          console.log("Failed to query", err);
           const error = `An error occured while processing please try again`;
           job.progress(error);
         });

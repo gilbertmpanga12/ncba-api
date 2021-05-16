@@ -17,7 +17,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work",  productionRedis);
+let workQueue = new Queue("work",  developmentRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -154,7 +154,7 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
   try {
-    let collection = `${name}_week_${count-1}_customer_details`;
+    let collection = `${name}_week_${count}_migration`;
     const customer_details = admin
       .firestore()
       .collection(collection);
@@ -238,7 +238,11 @@ async function setDocumentCount(name, count, docsCount, operationType){
           const oldValue = Number(checkIfExits.data().current_count);
           await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
         }else{
-          await detailsCounter.set({current_count: docsCount}, {merge: true});
+          openDatabase(`${name}_week_${count}_migration`).then(client => {
+            client.collection.countDocuments().then(count => {
+              detailsCounter.set({current_count: (docsCount + count)}, {merge: true}).then(() => null);
+            }).catch(err => logger.info("Failed to count", err));
+          }).catch(err => logger.info("Failed to get db for counting",err));
         }
 
         return;
