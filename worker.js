@@ -40,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work",  productionRedis);
+  let workQueue = new Queue("work",  developmentRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -66,6 +66,11 @@ function start() {
       const operation = "DATA_CREATION";
       job.progress({current: 0, remaining: -1, operationType: operation, 
       count:count, name:name, docsCount: 0});
+     // check for errors
+     csvStream.on("error", (error) => {
+       console.log("CSv stream error", error);
+     });
+
      // count data coming in
       csvStream.on('data', (data) => {
         totalDocsCount += 1;
@@ -126,11 +131,11 @@ async function writePointsAndDetails(datas, name, count, job, done){
   let operationCounter = 0;
   let batchIndex = 0;
   documentSnapshotArray.forEach((csv_doc) => {
-    const uid = `${csv_doc['Customer Number']}`.trim();
+    const uid = `${csv_doc['Customer Number']}`;
     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
     batchArrayDetails[batchIndex].set(documentDataDetails, {
-      "Customer Number": csv_doc["Customer Number"].trim(),
-      "Loan Reference": csv_doc["Loan Reference"].trim(),
+      "Customer Number": csv_doc["Customer Number"],
+      "Loan Reference": csv_doc["Loan Reference"],
       "Loan Repaid Date": moment(csv_doc["Loan Repaid Date"]).format(),
       "Loan Start Date": moment(csv_doc["Loan Start Date"]).format()
     });

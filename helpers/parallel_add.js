@@ -17,7 +17,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work",  productionRedis);
+let workQueue = new Queue("work",  developmentRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -117,7 +117,7 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
       .collection(`${name}_week_${count}_winners`)
       .doc(`${count}`)
       .set({ winners: luckyWinners }, { merge: true });
-      await reduceBy10AfterRandomization(name, count);
+      //await reduceBy10AfterRandomization(name, count);
       // disable randomizaition
     await clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
   } catch (e) {
@@ -127,20 +127,17 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
 
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
   try {
+    let collection = `${name}_week_${count-1}_customer_details`;
     const customer_details = admin
       .firestore()
       .collection(collection);
-    const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
-    
-   if(count > 1){
-    let collection = `${name}_week_${count-1}_customer_details`;
-    const filter = {
-      "Customer Number": {
-        "$in":  filterCustomerNumber
-      }
-    };
-    const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
-   }
+    // const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
+    // const filter = {
+    //   "Customer Number": {
+    //     "$in":  filterCustomerNumber
+    //   }
+    // };
+    // const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
 
     await Promise.all(
       luckyWinners.map((winner) => {
@@ -235,15 +232,6 @@ async function setDocumentCount(name, count, docsCount, operationType){
         await newWeekCollection.set({current_count: (Number(newWeekCount.data().current_count) 
           + docsCount)}, {merge: true});
        }
-
-      
-
-      //  const customerDetails = await firestore().collection(`${name}_week_${diff}_customer_details`)
-      //   .limit(7).get();
-      //  const datas = [];
-      //  customerDetails.forEach(customer_details => datas.push(customer_details.data()));
-      //  await storeMoreCustomerData(datas, name, count);
-
        return;
 
       }
@@ -254,31 +242,6 @@ async function setDocumentCount(name, count, docsCount, operationType){
   }
 
 
-
-    // async function storeMoreCustomerData(datas, name, count){
-    //   //const operation = "DATA_CREATION";
-    //   const documentSnapshotArray = datas;
-    //   //const total_count = datas.length;
-    //   const batchArrayDetails = [];
-    //   batchArrayDetails.push(firestore().batch());
-    //   let operationCounter = 0;
-    //   let batchIndex = 0;
-    //   documentSnapshotArray.forEach((csv_doc) => {
-    //     const uid = `${csv_doc['Customer Number']}`;
-    //     const documentDataDetails = firestore().collection(`${name}_week_${count}_customer_details`).doc(uid);
-    //     batchArrayDetails[batchIndex].set(documentDataDetails, {...csv_doc});
-    //     operationCounter++;
-        
-    
-    //     if (operationCounter === 499) {
-    //       batchArrayDetails.push(firestore().batch());
-    //       batchIndex++;
-    //       operationCounter = 0;
-    //     }
-    //   });
-    
-    //   batchArrayDetails.forEach(async (batch) => await batch.commit());
-    // }
 
     async function reduceBy10AfterRandomization(name, count){
       try{
