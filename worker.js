@@ -8,7 +8,7 @@ const { logger } = require("./helpers/logger");
 const { firestore } = require("firebase-admin");
 const request = require("request");
 const progress = require("request-progress");
-const {storeData,storeMigrationData}= require('./utilities/write_to_db');
+const storeData = require('./utilities/write_to_db');
 const validateJSONData = require('./utilities/clean_transformer');
 const pickRandom = require('pick-random');
 const openDatabase = require('./utilities/mongo_client');
@@ -60,7 +60,8 @@ function start() {
     }
 
 
-    openDatabase(`${name}_week_${count}_customer_details`).then(client => {
+    openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
       let totalDocsCount = 0;
       const batch = new BatchStream({size: 500});
       const operation = "DATA_CREATION";
@@ -86,10 +87,10 @@ function start() {
         job.progress(e);
       })
       .pipe(batch).
-       pipe(storeData(client.collection)).
-       pipe(storeMigrationData(name, count))
+       pipe(storeData(client.collection, client.migration))
       .on("finish", () => {
-        openDatabase(`${name}_week_${count}_customer_details`).then((newclient) => {
+        openDatabase(`${name}_week_${count}_customer_details`,
+         `${name}_week_${count}_migration`).then((newclient) => {
         const getSample =  newclient.collection.find().limit(300).toArray(); // client.collection.find();//limit(80000)
         getSample.then(results => {
           writePointsAndDetails(results.reverse(), name, count, job, done).then(() => {
@@ -205,7 +206,8 @@ async function deleteColletions(name, count, job){
 
 async function deleteMongoCollection(name, count){
   try{
-    const _collection = await openDatabase(`${name}_week_${count}_customer_details`);
+    const _collection = await openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`);
     const dropCollection = await _collection.collection.drop();
     return true;
   }catch(e){

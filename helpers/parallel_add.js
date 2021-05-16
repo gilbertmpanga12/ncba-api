@@ -164,7 +164,8 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
           "$in":  filterCustomerNumber
         }
       };
-      const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
+      const _clearWinnersFromMongo = await (await openDatabase(`${name}_week_${count}_customer_details`,
+      `${name}_week_${count}_migration`)).collection.deleteMany(filter);
 
     await Promise.all(
       luckyWinners.map((winner) => {
@@ -238,7 +239,8 @@ async function setDocumentCount(name, count, docsCount, operationType){
           const oldValue = Number(checkIfExits.data().current_count);
           await detailsCounter.set({current_count: (oldValue + docsCount)}, {merge: true});
         }else{
-          openDatabase(`${name}_week_${count}_migration`).then(client => {
+          openDatabase(`${name}_week_${count}_customer_details`,
+          `${name}_week_${count}_migration`).then(client => {
             client.collection.countDocuments().then(count => {
               detailsCounter.set({current_count: (docsCount + count)}, {merge: true}).then(() => null);
             }).catch(err => logger.info("Failed to count", err));
