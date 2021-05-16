@@ -144,7 +144,7 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
         await storeParticpantsArray(name, participantsStore);
       }
 
-      await reduceBy10AfterRandomization(name, count);
+      // await reduceBy10AfterRandomization(name, count);
       // disable randomizaition
     await clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
   } catch (e) {
