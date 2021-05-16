@@ -17,7 +17,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work",  developmentRedis);
+let workQueue = new Queue("work",  productionRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -110,6 +110,16 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
   }
 }
 
+async function storeParticpantsArray(name, participantsStore){
+  try{
+    await firestore().collection(`${name}_all_participants_count`).doc(name).set({
+      participantsStore
+    });
+  }catch(e){
+    return e;
+  }
+}
+
 async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
   try {
     await admin
@@ -117,7 +127,24 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
       .collection(`${name}_week_${count}_winners`)
       .doc(`${count}`)
       .set({ winners: luckyWinners }, { merge: true });
-      //await reduceBy10AfterRandomization(name, count);
+      const detailsCounter = await firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`).get();
+      const all_participants = await firestore().collection(`${name}_all_participants_count`).doc(name).get();
+      
+      if(detailsCounter.exists && all_participants.exists){
+        const participantsStore = all_participants.data()['participantsStore'];
+        const week = {};
+        week[`week_${count}`] = detailsCounter;
+        participantsStore.push(week);
+        await storeParticpantsArray(name, participantsStore);
+      }else{
+        const participantsStore = [];
+        const week = {};
+        week[`week_${count}`] = detailsCounter.data();
+        participantsStore.push(week);
+        await storeParticpantsArray(name, participantsStore);
+      }
+
+      await reduceBy10AfterRandomization(name, count);
       // disable randomizaition
     await clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
   } catch (e) {
@@ -131,13 +158,15 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
     const customer_details = admin
       .firestore()
       .collection(collection);
-    // const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
-    // const filter = {
-    //   "Customer Number": {
-    //     "$in":  filterCustomerNumber
-    //   }
-    // };
-    // const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
+    if(count > 1){
+      const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
+    const filter = {
+      "Customer Number": {
+        "$in":  filterCustomerNumber
+      }
+    };
+    const _clearWinnersFromMongo = await (await openDatabase(collection)).collection.deleteMany(filter);
+    }
 
     await Promise.all(
       luckyWinners.map((winner) => {

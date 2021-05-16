@@ -40,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work",  developmentRedis);
+  let workQueue = new Queue("work",  productionRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -69,6 +69,7 @@ function start() {
      // check for errors
      csvStream.on("error", (error) => {
        console.log("CSv stream error", error);
+       throw error;
      });
 
      // count data coming in
