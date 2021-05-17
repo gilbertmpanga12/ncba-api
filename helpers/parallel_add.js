@@ -17,7 +17,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work",  productionRedis);
+let workQueue = new Queue("work",  developmentRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -248,21 +248,50 @@ async function setDocumentCount(name, count, docsCount, operationType){
       if(Number(count) > 1 && operationType === "DATA_CREATION"){
        const diff = Number(count) - 1;
        const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
-      // const getOldCount = await oldCountStore.get();
-       //let _oldWeekCount = getOldCount.exists ? Number(getOldCount.data().current_count): 0;
-
        const newWeekCollection = await firestore().collection(`${name}_week_${count}_counter`)
        .doc(`${count}`);
        const newWeekCount = await newWeekCollection.get();
        if(!newWeekCount.exists || newWeekCount.data()['current_count'] === 0){
-       //await newWeekCollection.set({current_count: (docsCount + _oldWeekCount)}, {merge: true});
-       openDatabase(`${name}_week_${count}_customer_details`,
-       `${name}_week_${count-1}_migration`).then(client => {
-         client.migration.countDocuments().then(migrationcount => {
-          newWeekCollection.set({current_count: (docsCount + migrationcount)}, {merge: true}).then(() => null);
-         }).catch(err => logger.info("Failed to count", err));
-       }).catch(err => logger.info("Failed to get db for counting",err));
 
+        openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
+        const unionCollections = [];
+        for(let start=count-1;start >= 1; start--){
+            unionCollections.push(
+                { "$unionWith": {
+                    "coll": `${name}_week_${start}_migration`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
+        }
+        const pipeline = [
+            { "$project": { 
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections,
+                {"$count": "totalCount"}
+        ];
+      //.count()
+       const report = client.collection.aggregate(pipeline, (err, res) => {
+         if(err) throw err;
+         let migrationcount;
+         res.forEach(doc => {
+          migrationcount = doc['totalCount'];
+          newWeekCollection.set({current_count: migrationcount}, {merge: true}).then(() => null);
+         });
+         
+       });
+       
+    })
+       
        }else{
         await newWeekCollection.set({current_count: (Number(newWeekCount.data().current_count) 
           + docsCount)}, {merge: true});
