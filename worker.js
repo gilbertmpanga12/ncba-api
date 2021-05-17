@@ -220,55 +220,104 @@ async function deleteMongoCollection(name, count){
 
 async function getLucky10(name, count, job, done){
   try{
-    let details_index = 1;
-    let docsReferences = [];
-    let documentSnapshotArrayDetails = [];
-    let lucky_weekly_10_winners = [];
+    // let details_index = 1;
+    // let docsReferences = [];
+    // let documentSnapshotArrayDetails = [];
+    //let lucky_weekly_10_winners = [];
     const details_batch = firestore().batch();
     let progress = 0;
-    
-    
-    while(details_index <= count){
-      docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`).limit(777).get());
-      progress += 1;
-      job.progress({current: progress, remaining: 0});
-      details_index++;
-    }
+    // while(details_index <= count){
+    //   docsReferences.push(firestore().collection(`${name}_week_${details_index}_customer_details`).limit(777).get());
+    //   progress += 1;
+    //   job.progress({current: progress, remaining: 0});
+    //   details_index++;
+    // }
    
   
-    await Promise.all(docsReferences).then((docs) => {
-     docs.map(doc => doc.forEach(user_details => {
-        documentSnapshotArrayDetails.push(user_details.data())
-        progress += 1;
-        job.progress({current: progress, remaining: 0});
-      }));
+    // await Promise.all(docsReferences).then((docs) => {
+    //  docs.map(doc => doc.forEach(user_details => {
+    //     documentSnapshotArrayDetails.push(user_details.data())
+    //     progress += 1;
+    //     job.progress({current: progress, remaining: 0});
+    //   }));
       
-    });
+    // });
 
-
-      lucky_weekly_10_winners = pickRandom(documentSnapshotArrayDetails, {count: 10});
-      progress++;
-      job.progress({current: progress, remaining: 0});
-
-      // check if winners already entred
-      const checkWinnersAlready = await firestore().collection(`${name}_grand_total_details`).get();
+    const checkWinnersAlready = await firestore().collection(`${name}_grand_total_details`).get();
       const checkerArray = [];
       checkWinnersAlready.forEach(customer => checkerArray.push(customer));
       if(checkerArray.length > 1){
         job.progress({current: 100, remaining: 100});
+        done();
         return;
       }
 
+
+    openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
+        const unionCollections = [];
+        for(let start=count-1;start >= 1; start--){
+            unionCollections.push(
+                { "$unionWith": {
+                    "coll": `${name}_week_${count}_customer_details`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
+        }
+        const pipeline = [
+            { "$project": { 
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections,
+                {"$sample": {"size": 10}}
+        ];
+      
+      client.collection.aggregate(pipeline).toArray().then(winners => {
+      const lucky_weekly_10_winners = winners.map(function(lucky_winners){
+        return {
+          "Customer Number": lucky_winners["Customer Number"],
+          "Loan Reference": lucky_winners["Loan Reference"],
+          "Loan Repaid Date": lucky_winners["Loan Repaid Date"],
+          "Loan Start Date": lucky_winners["Loan Start Date"]
+
+        };
+      });
+      // check if winners already entred
+      
       lucky_weekly_10_winners.forEach(csv_doc => {
-      const uid = `${csv_doc['Customer Number']}`.trim();
+      const uid = `${csv_doc['Customer Number']}`;
       let details = firestore().collection(`${name}_grand_total_details`).doc(uid);
       details_batch.set(details, csv_doc);
       progress++;
-      job.progress({current: progress, remaining: 0});
     });
 
     details_batch.commit();
-    const participantsCollection = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name);
+    setFinalGrandCount(name, count, job, done);
+       });
+       
+    })
+
+    
+
+  }catch(e){
+    const message = `Picking lucky winners failed`;
+    job.progress(message);
+    done(new Error(message));
+    logger.info(message, e);
+  }
+  
+}
+
+async function setFinalGrandCount(name, count, job, done){
+  const participantsCollection = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name);
     const allparticipants = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name).get();
     if(allparticipants.exists){
       return;
@@ -300,26 +349,28 @@ async function getLucky10(name, count, job, done){
                 {"$count": "totalCount"}
         ];
       
+       
        const report = client.collection.aggregate(pipeline, (err, res) => {
-         if(err) throw err;
-         let migrationcount;
+        const processCounter = new Promise((resolve, reject) => {
+         if(err) reject(err);
          res.forEach(doc => {
-          migrationcount = doc['totalCount'];
-          participantsCollection.set({current_count: migrationcount}, {merge: true}).then(() => null);
-          job.progress({current: 100, remaining: 0});
-          done();
-         });
-         
+           let migrationcount;
+           migrationcount = doc['totalCount'];
+           if(migrationcount){
+             resolve(migrationcount);
+           }
+          });
        });
+
+       processCounter.then(migrationcount => {
+        participantsCollection.set({current_count: migrationcount}, {merge: true}).then(() => null);
+        job.progress({current: 100, remaining: 100});
+        done();
+       });
+        
+      });
        
     })
-  }catch(e){
-    const message = `Picking lucky winners failed`;
-    job.progress(message);
-    done(new Error(message));
-    logger.info(message, e);
-  }
-  
 }
 
 

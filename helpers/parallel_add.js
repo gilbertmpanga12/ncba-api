@@ -87,18 +87,25 @@ async function AddWeekStates(name, datas, res) {
 
 async function RandomiseLuckyWinners(name, count, weekDuration, res) {
   try {
-    const collection = admin
-      .firestore()
-      .collection(`${name}_week_${count}_customer_details`);
-    const doc = await collection.limit(10000).get();
-    const results = [];
-    doc.forEach((doc) => {
-      results.push(doc.data());
-    });
-    const luckyWinners = pickRandom(results.reverse(), { count: 10 });
-    storeRandomisedWinners(count, luckyWinners, name, weekDuration);
-
-    res.status(200).send({ message: luckyWinners });
+    openDatabase(`${name}_week_${count}_customer_details`,
+      `${name}_week_${count}_migration`).then(client => {
+        const filter = [{"$sample": {"size": 10}}];
+        const db = client.collection.aggregate(filter);
+        db.toArray().then(result => {
+          const luckyWinners = result.map(function(csv_doc){
+            return {
+              "Customer Number":csv_doc["Customer Number"],
+              "Loan Reference": csv_doc["Loan Reference"],
+              "Loan Repaid Date": csv_doc["Loan Repaid Date"],
+              "Loan Start Date": csv_doc["Loan Start Date"]
+            };
+          });
+          storeRandomisedWinners(count, luckyWinners, name, weekDuration);
+          res.status(200).send({ message: luckyWinners });
+        });
+        
+      });
+  
   } catch (e) {
     logger.info("Randomise lucky winners error", e);
     res
@@ -279,14 +286,22 @@ async function setDocumentCount(name, count, docsCount, operationType){
                 ...unionCollections,
                 {"$count": "totalCount"}
         ];
-      //.count()
        const report = client.collection.aggregate(pipeline, (err, res) => {
-         if(err) throw err;
-         let migrationcount;
-         res.forEach(doc => {
-          migrationcount = doc['totalCount'];
+         const processCounter = new Promise((resolve, reject) => {
+          if(err) reject(err);
+          res.forEach(doc => {
+            let migrationcount;
+            migrationcount = doc['totalCount'];
+            if(migrationcount){
+              resolve(migrationcount);
+            }
+           });
+        });
+
+        processCounter.then(migrationcount => {
+          console.log('my resolved shit',  migrationcount);
           newWeekCollection.set({current_count: migrationcount}, {merge: true}).then(() => null);
-         });
+        });
          
        });
        
