@@ -40,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work",  developmentRedis);
+  let workQueue = new Queue("work",  productionRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -317,8 +317,8 @@ async function getLucky10(name, count, job, done){
 }
 
 async function setFinalGrandCount(name, count, job, done){
-  const participantsCollection = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name);
-    const allparticipants = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name).get();
+  const participantsCollection = await firestore().collection(`${name}_all_participants_count`).doc(name);
+    const allparticipants = await firestore().collection(`${name}_all_participants_count`).doc(name).get();
     if(allparticipants.exists){
       return;
     }
