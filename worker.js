@@ -218,7 +218,7 @@ async function deleteMongoCollection(name, count){
 }
 
 
-async function getLucky10(name, count, job){
+async function getLucky10(name, count, job, done){
   try{
     let details_index = 1;
     let docsReferences = [];
