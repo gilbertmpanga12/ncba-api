@@ -44,7 +44,7 @@ function readDatabaseCursor(cursor, path, res, readStream){
 
 
 function queryAdditionalWeeks(name, count, generateEntireReport, res){
-    const allparticipants = __dirname + `/all_participants_${name}_week_batch.csv`;
+    const allparticipants = __dirname + `/final_week_${name}_week_batch.csv`;
     const outputpath = generateEntireReport ? allparticipants : __dirname + `/${name}_week_${count}_batch.csv`;
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
@@ -80,6 +80,44 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
     })
 }
 
+async function queryAllWeekParticipants(name, count, generateEntireReport, res){
+    const allparticipants = __dirname + `/all_participants_${name}_week_batch.csv`;
+    const outputpath = allparticipants;
+    const readStream = new stream.Readable({objectMode: true});
+    readStream._read = () => {};
+    readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
+    openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
+        const unionCollections = [];
+        for(let start=count-1;start >= 1; start--){
+            unionCollections.push(
+                { "$unionWith": {
+                    "coll": `${name}_week_${start}_customer_details`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
+        }
+        console.log(unionCollections)
+        const pipeline = [
+            { "$project": { 
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections
+        ];
+        
+       const report = client.collection.aggregate(pipeline);
+       return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
+    })
+}
+
 
 async function uploadToStorage(filePath, res){
     try{
@@ -96,4 +134,4 @@ async function uploadToStorage(filePath, res){
 
 
 
-module.exports= generateReport;
+module.exports= {generateReport, queryAllWeekParticipants};

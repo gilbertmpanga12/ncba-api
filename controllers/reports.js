@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 const {printCsv, printPdf, getWeeklyCsv} = require('../helpers/reports');
-const generateReport = require('../reports/generate_report');
+const {generateReport, queryAllWeekParticipants} = require('../reports/generate_report');
 const {getLuck3Report} = require('../helpers/reports');
 
 var fonts = {
@@ -108,6 +108,11 @@ router.post('/generate-weekly-csv', async (req,res) => {
 	generateReport(name, count, generateEntireReport, res);
 });
 
+
+router.post('/quey-all-participants', async (req,res) => {
+    const {count, name, generateEntireReport} = req.body;
+	await queryAllWeekParticipants(name, count, generateEntireReport, res);
+});
 
 router.post('/get-lucky-3-report/:type', async (req, res, next) => {
     const {name} = req.body;

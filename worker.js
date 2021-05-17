@@ -40,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work",  productionRedis);
+  let workQueue = new Queue("work",  developmentRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -268,8 +268,51 @@ async function getLucky10(name, count, job, done){
     });
 
     details_batch.commit();
-    job.progress({current: 100, remaining: 0});
-    done();
+    const participantsCollection = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name);
+    const allparticipants = await firestore().collection(`${all_participants_count}_all_participants_count`).doc(name).get();
+    if(allparticipants.exists){
+      return;
+    }
+    openDatabase(`${name}_week_${count}_customer_details`,
+    `${name}_week_${count}_migration`).then(client => {
+        const unionCollections = [];
+        for(let start=count-1;start >= 1; start--){
+            unionCollections.push(
+                { "$unionWith": {
+                    "coll": `${name}_week_${count}_customer_details`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
+        }
+        const pipeline = [
+            { "$project": { 
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections,
+                {"$count": "totalCount"}
+        ];
+      
+       const report = client.collection.aggregate(pipeline, (err, res) => {
+         if(err) throw err;
+         let migrationcount;
+         res.forEach(doc => {
+          migrationcount = doc['totalCount'];
+          participantsCollection.set({current_count: migrationcount}, {merge: true}).then(() => null);
+          job.progress({current: 100, remaining: 0});
+          done();
+         });
+         
+       });
+       
+    })
   }catch(e){
     const message = `Picking lucky winners failed`;
     job.progress(message);
