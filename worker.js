@@ -317,8 +317,8 @@ async function getLucky10(name, count, job, done){
 }
 
 async function setFinalGrandCount(name, count, job, done){
-  const participantsCollection = await firestore().collection(`${name}_all_participants_count`).doc(name);
-    const allparticipants = await firestore().collection(`${name}_all_participants_count`).doc(name).get();
+  const participantsCollection = await firestore().collection(`${name}_total_week_count`).doc(name);
+    const allparticipants = await firestore().collection(`${name}_total_week_count`).doc(name).get();
     if(allparticipants.exists){
       return;
     }
