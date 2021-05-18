@@ -2,7 +2,6 @@ const admin = require('firebase-admin');
 
 function getFirebaseUser(req, res, next) {
     console.log("Check if request is authorized with Firebase ID token");
-  
     if (
       !req.headers.authorization ||
       !req.headers.authorization.startsWith("Bearer ")

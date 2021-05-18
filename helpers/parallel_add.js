@@ -352,7 +352,6 @@ async function setDocumentCount(name, count, docsCount, operationType){
   }
 
 
-
     async function reduceBy10AfterRandomization(name, count){
       try{
       const currentWeek = firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`);
@@ -368,12 +367,10 @@ async function setDocumentCount(name, count, docsCount, operationType){
     }
 
 
-
 // async function updateWeeklyStateRandom(count, name, csv_file, startDate, endDate){
 //     firestore().collection('all_projects')
 //     .doc(name).collection('week_state_draw').doc(`week_${count}`).set({state: true,
 //       startedDate:startDate, endDate:endDate, csv_file: csv_file}, {merge: false});
-
 //   }
 
 async function pickLucky3(name, res) {
