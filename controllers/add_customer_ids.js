@@ -17,7 +17,7 @@ router.post('/job', (req, res) =>{
 
 router.post('/randomise-lucky-winners', async (req, res, next) => {
     const {weekDuration, name, count} = req.body;
-    req.setTimeout(5000000000);
+    req.setTimeout(50000000);
     await RandomiseLuckyWinners(name, count, weekDuration, res);
 });
 
@@ -50,7 +50,7 @@ router.post('/current-week', (req, res) => {
 
 router.post('/validate-csv-file', async (req, res) => {
     const {url} = req.body;
-    req.setTimeout(5000000000);
+    req.setTimeout(50000000);
     await validateCsvFile(url, res);
 });
 

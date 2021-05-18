@@ -20,7 +20,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", developmentRedis);
+let workQueue = new Queue("work", productionRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -430,17 +430,20 @@ async function validateCsvFile(url, res){
                     if(duplicateCount[key] >= 1){
                         const eror_message = `Please check your csv file for duplicates`;
                         res.status(200).send({message: eror_message, status: 'duplicates'});
+                        throw eror_message;
                       }
               logger.info(csv_data);
         }else{
           const eror_message = `Please check your csv file for missing 
           blank customer numbers and empty fields`;
           res.status(200).send({message: eror_message, status: 'blank'});
+          throw eror_message;
         }
       }catch(e){
         const eror_message = `Please check your csv file for missing 
         blank customer numbers and empty fields`;
         res.status(200).send({message: eror_message, status: 'mixed_errors'});
+        throw eror_message;
       }
     })
     .on("end", async function (data) {
@@ -451,6 +454,7 @@ async function validateCsvFile(url, res){
     console.log(e);
     res.status(500).send({message: "An internal error occured", 
     status: e});
+    throw e;
   }
 }
 
