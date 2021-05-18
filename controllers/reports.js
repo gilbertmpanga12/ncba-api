@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const router = Router();
-const {printCsv, printPdf, getWeeklyCsv} = require('../helpers/reports');
+const {printCsv, printPdf, printCsvSingleWeek} = require('../helpers/reports');
 const {generateReport, queryAllWeekParticipants} = require('../reports/generate_report');
 const {getLuck3Report} = require('../helpers/reports');
 
@@ -44,13 +44,13 @@ var fonts = {
 		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
 		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
 		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
-		  { text: '', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:3.5},
+		  {margin: [50, 2], text: ' '},
 
 		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#000',  bold:true, lineHeight:1.5},
 		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
 		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
 		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
-		  { text: '', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:3.5},
+		  {margin: [50, 2], text: ' '},
 
 		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#000',  bold:true, lineHeight:1.5},
 		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
@@ -86,7 +86,7 @@ var fonts = {
 
 
 router.post('/generate-pdf', async (req,res) => {
-	const randomisedWinners = req.body;
+	const {randomisedWinners, name, count} = req.body;
 	docDefinition.content[1].table.body = [
 		[ 'Customer ID', 'Reference ID']
 	];
@@ -94,14 +94,14 @@ router.post('/generate-pdf', async (req,res) => {
 	randomisedWinners.forEach(customer => {
 		docDefinition.content[1].table.body.push([customer['Customer Number'], customer['Loan Reference']]);
 	});
-	await printPdf(fonts, docDefinition, res);
+	await printPdf(fonts, docDefinition,name, count, res);
     
 });
 
 
 router.post('/generate-csv', async (req,res) => {
-    const randomisedWinners = req.body;
-	await printCsv(randomisedWinners, res);
+    const {randomisedWinners, name, count} = req.body;
+	await printCsvSingleWeek(randomisedWinners, name, count, res);
     
 });
 

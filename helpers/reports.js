@@ -11,13 +11,13 @@ const mergeFile = require("merge-files");
 const { firestore } = require('firebase-admin');
 const google_storage_bucket = "ncba-313413.appspot.com";
 
-async function printPdf(fonts, docDefinition, res){
+async function printPdf(fonts, docDefinition, name, count, res){
 	try{
 		let printer = new PdfPrinter(fonts);
 		let pdfDoc = printer.createPdfKitDocument(docDefinition);
 		const bucket = firebase.storage().bucket(google_storage_bucket);
 		
-		const gcsname = `${nanoid(10)}.pdf`;
+		const gcsname = `${name}_week_${count}.pdf`;
 		const file = bucket.file(gcsname);
 		let stream = file.createWriteStream({
 			metadata: {
@@ -37,6 +37,59 @@ async function printPdf(fonts, docDefinition, res){
 		res.status(500).send({message: e});
 	}
 }
+
+
+async function printPdfLucky3(fonts, docDefinition, name, res){
+	try{
+		let printer = new PdfPrinter(fonts);
+		let pdfDoc = printer.createPdfKitDocument(docDefinition);
+		const bucket = firebase.storage().bucket(google_storage_bucket);
+		
+		const gcsname = `${name}_lucky_3.pdf`;
+		const file = bucket.file(gcsname);
+		let stream = file.createWriteStream({
+			metadata: {
+				contentType: 'application/pdf'
+			}
+		});
+	    pdfDoc.pipe(stream);
+		pdfDoc.end();
+		file.getSignedUrl(expirydate).then(url => {
+			const pdfUrl = url[0];
+			logger.info(pdfUrl);
+			res.status(200).json({pdfUrl: pdfUrl});
+			
+			});
+	}catch(e){
+		logger.info('PDF CREATION ERROR', e);
+		res.status(500).send({message: e});
+	}
+}
+
+
+
+async function printCsvLucky3(fullReuslts, name, res){
+	try{
+	  const json2csvParser = new Parser();
+	  const csv = json2csvParser.parse(fullReuslts);
+	  const bucket = firebase.storage().bucket(google_storage_bucket);
+		const gcsname = `${name}_lucky_3.csv`;
+	  const file = bucket.file(gcsname);
+	  file.save(csv, function(err){
+		if(err) throw err;
+		file.getSignedUrl(expirydate).then(url => {
+		  logger.info(url)
+		  res.status(200).json({csvUrl: url[0]});
+	  });
+	  });
+	  
+	}catch(e){
+	  logger.info('CSV CREATION ERROR', e);
+		  res.status(500).send({message: e});
+	}
+  
+  }
+
 
  function getWeeklyCsv(count, name, res){
 	var outputFile = path.join('./', `weeks/${name}_week_${count}.csv`);
@@ -86,6 +139,29 @@ async function uploadFile(outputFilePath, name, count, res){
 	}
 }
 
+async function printCsvSingleWeek(fullReuslts, name, count, res){
+	try{
+	  const json2csvParser = new Parser();
+	  const csv = json2csvParser.parse(fullReuslts);
+	  const bucket = firebase.storage().bucket(google_storage_bucket);
+		const gcsname = `${name}_week_${count}.csv`;
+	  const file = bucket.file(gcsname);
+	  file.save(csv, function(err){
+		if(err) throw err;
+		file.getSignedUrl(expirydate).then(url => {
+		  logger.info(url)
+		  res.status(200).json({csvUrl: url[0]});
+	  });
+	  });
+	  
+	}catch(e){
+	  logger.info('CSV CREATION ERROR', e);
+		  res.status(500).send({message: e});
+	}
+  
+  }
+
+
 async function printCsv(fullReuslts, res){
   try{
 	const json2csvParser = new Parser();
@@ -116,12 +192,12 @@ async function getLuck3Report(name, type, fonts, docDefinition ,res){
 	  const lucky3Winners = await firestore().collection(`${name}_winner3_details`).get();
 	  lucky3Winners.forEach(winner => winners.push(winner.data()));
 	  if(type === "csv"){
-		const _saveFile= await printCsv(winners, res);
+		const _saveFile= await printCsvLucky3(winners, name, res);
 	  }else{
 		const addItemsToPdfTable = winners.forEach(customer =>{
 			pdfTable.content[1].table.body.push([customer['Customer Number'],customer['Loan Reference']]); 
 		  });
-		  printPdf(fonts, pdfTable, res);
+		  printPdfLucky3(fonts, pdfTable, name, res);
 	  }
 	  
 	}catch(e){
@@ -132,4 +208,4 @@ async function getLuck3Report(name, type, fonts, docDefinition ,res){
 
 
 
-module.exports = {printPdf, printCsv, getWeeklyCsv, getLuck3Report};
+module.exports = {printPdf, printCsv, getWeeklyCsv, getLuck3Report, printCsvSingleWeek};
