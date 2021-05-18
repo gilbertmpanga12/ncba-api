@@ -33,5 +33,4 @@ app.use('/ncba-api/api',getFirebaseUser,  add_customer_numbers);
 app.use('/ncba-api/api/reports',getFirebaseUser, reports);
 app.get('/ncba-api', (req, res) => res.send({message: "Raffle app active"}));
 
-
 app.listen(port, () => console.log('Running app 🤖🤖 ' + port));

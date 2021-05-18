@@ -4,6 +4,9 @@ const pickRandom = require("pick-random");
 const { logger } = require("../helpers/logger");
 const { firestore } = require("firebase-admin");
 const openDatabase = require('../utilities/mongo_client');
+const progress = require("request-progress");
+const csv = require("csv-stream");
+const request = require("request");
 
 const productionRedis = {
   redis: {
@@ -398,11 +401,59 @@ async function pickLucky3(name, res) {
   }
 }
 
-async function validateCsvFile(url){
+async function validateCsvFile(url, res){
+ 
   try{
-
+    const csvStream = csv.createStream();
+    var duplicateCount = {};
+    progress(request(url))
+    .on("progress", function (state) {
+      logger.info("progress", state);
+    })
+    .pipe(csvStream)
+    .on("error", function (err) {
+      logger.error(err);
+      job.progress('Oops an internal error occured, please contact support');
+    })
+    .on("data", function (csv_data) {
+      try{
+        if(csv_data["Customer Number"].trim() && 
+        csv_data["Loan Reference"].trim() && 
+        csv_data["Loan Repaid Date"].trim() 
+        && csv_data["Loan Start Date"].trim()){
+          // check for duplicates
+          const key = csv_data["Loan Reference"].trim();
+    
+          if(duplicateCount[key] === 0){
+            duplicateCount[key]++;
+                      }else{
+                        duplicateCount[key] = 0;
+                      }
+          
+                    if(duplicateCount[key] >= 1){
+                        const eror_message = `Please check your csv file for duplicates`;
+                        res.status(200).send({message: eror_message, status: 'duplicates'});
+                      }
+              logger.info(csv_data);
+        }else{
+          const eror_message = `Please check your csv file for missing 
+          blank customer numbers and empty fields`;
+          res.status(200).send({message: eror_message, status: 'blank'});
+        }
+      }catch(e){
+        const eror_message = `Please check your csv file for missing 
+        blank customer numbers and empty fields`;
+        res.status(200).send({message: eror_message, status: 'mixed_errors'});
+      }
+    })
+    .on("end", async function (data) {
+     // do work here
+     res.status(200).send({message: "clean", status: 'clean'});
+    });
   }catch(e){
-
+    console.log(e);
+    res.status(500).send({message: "An internal error occured", 
+    status: e});
   }
 }
 
