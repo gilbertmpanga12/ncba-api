@@ -40,7 +40,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work",  productionRedis);
+  let workQueue = new Queue("work",  developmentRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -74,17 +74,33 @@ function start() {
 
      // count data coming in
       csvStream.on('data', (data) => {
+         try{
+         if(csv_data["Customer Number"].trim() && 
+          csv_data["Loan Reference"].trim() && 
+          csv_data["Loan Repaid Date"].trim() 
+          && csv_data["Loan Start Date"].trim()){
         totalDocsCount += 1;
         job.progress({current: totalDocsCount, remaining:-1, operationType: operation, count:count, name:name, 
           docsCount: totalDocsCount});
+        }else{
+            const error_message = `Please check your csv file for missing 
+            blank customer numbers and empty fields`;
+            const error = new Error(error_message);
+            callback(error);
+            throw error;
+        }
+        }catch(e){
+            const error_message = `Please check your csv file for missing cells or invalid fields entered`;
+            const error = new Error(error_message);
+            callback(error);
+            throw error;
+        }
+        
       });
 
       progress(request(url))
       .pipe(csvStream)
-      .pipe(validateJSONData()).on("error", (e) => {
-        console.log("Something went wrong while validating", e);
-        job.progress(e);
-      })
+      .pipe(validateJSONData())
       .pipe(batch).
        pipe(storeData(client.collection, client.migration))
       .on("finish", () => {
