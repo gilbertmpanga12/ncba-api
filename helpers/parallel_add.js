@@ -398,6 +398,13 @@ async function pickLucky3(name, res) {
   }
 }
 
+async function validateCsvFile(url){
+  try{
+
+  }catch(e){
+
+  }
+}
 
 
 
@@ -463,5 +470,6 @@ module.exports = {
   currentWeek,
   setDocumentCount,
   pickLucky3,
-  deleteLucky3
+  deleteLucky3,
+  validateCsvFile
 };

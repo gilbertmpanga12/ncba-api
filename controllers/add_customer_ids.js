@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 const {ParallelIndividualWrites, RandomiseLuckyWinners,
-    AddWeekStates, getJobId, pickLucky3, currentWeek} = require('../helpers/parallel_add');
+    AddWeekStates, getJobId, pickLucky3, currentWeek, validateCsvFile} = require('../helpers/parallel_add');
 
 
 
@@ -44,6 +44,13 @@ router.post('/pick-lucky-3', async (req, res, next) => {
 router.post('/current-week', (req, res) => {
     const {count, name, page, docsCount} = req.body;
     currentWeek(count, name, docsCount, page, res);
+});
+
+
+router.post('/validate-csv-file', async (req, res) => {
+    const {url} = req.body;
+    req.setTimeout(5000000000);
+    await validateCsvFile(url);
 });
 
 module.exports = router;
