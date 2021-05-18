@@ -23,7 +23,7 @@ function queryFirstWeek(name, count, res){
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
     openDatabase(`${name}_week_${count}_customer_details`,
     `${name}_week_${count}_migration`).then(client => {
-        const cursor = client.collection.find();
+        const cursor = client.collection.find({}, {fields: {_id:0}});
         return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     }).catch(err => {
         logger.info(err);

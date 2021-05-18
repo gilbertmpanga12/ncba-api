@@ -40,20 +40,22 @@ var fonts = {
 		  { text: ' ', alignment: 'left', fontSize: 18,  bold:true},
 		  { text: ' ', alignment: 'left', fontSize: 18,  bold:true},
 		  { text: ' ', alignment: 'left', fontSize: 18,  bold:true},
-		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
-		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: '', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
-		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: '', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#D1D5DB',  bold:true, lineHeight:1.5},
-		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5},
-		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#D1D5DB', bold:true, lineHeight:1.5}
+		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#000',  bold:true, lineHeight:1.5},
+		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: '', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:3.5},
+
+		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#000',  bold:true, lineHeight:1.5},
+		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: '', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:3.5},
+
+		  { text: 'Organization:', alignment: 'left', fontSize: 17, color: '#000',  bold:true, lineHeight:1.5},
+		  { text: 'Name:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: 'Signature:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5},
+		  { text: 'Date:', alignment: 'left', fontSize: 17, color: '#000', bold:true, lineHeight:1.5}
 		  
 	],
 	
