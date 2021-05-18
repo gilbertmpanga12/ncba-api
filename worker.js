@@ -14,7 +14,7 @@ const pickRandom = require('pick-random');
 const openDatabase = require('./utilities/mongo_client');
 const BatchStream = require('batch-stream');
 const moment = require('moment');
-//patch
+
 
 const productionRedis = {
   redis: {

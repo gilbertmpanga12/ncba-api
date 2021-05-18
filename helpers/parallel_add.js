@@ -89,8 +89,36 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
   try {
     openDatabase(`${name}_week_${count}_customer_details`,
       `${name}_week_${count}_migration`).then(client => {
-        const filter = [{"$sample": {"size": 10}}];
-        const db = client.collection.aggregate(filter);
+        let unionCollections = [];
+        let pipeline;
+        if(count > 1){
+         
+        for(let start=count-1;start >= 1; start--){
+            unionCollections.push(
+                { "$unionWith": {
+                    "coll": `${name}_week_${start}_migration`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
+        }
+        pipeline = [
+            { "$project": { 
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections,
+                {"$sample": {"size": 10}}
+        ];
+        }
+       const filter = [{"$sample": {"size": 10}}];
+       const db = count > 1 ? client.collection.aggregate(pipeline): client.collection.aggregate(filter);
         db.toArray().then(result => {
           const luckyWinners = result.map(function(csv_doc){
             return {
