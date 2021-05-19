@@ -20,7 +20,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", productionRedis);
+let workQueue = new Queue("work", developmentRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -398,11 +398,10 @@ async function pickLucky3(name, res) {
   }
 }
 
-async function validateCsvFile(url, res){
- 
-  try{
-    const csvStream = csv.createStream();
+ function validateCsvFile(url, res){
+  const csvStream = csv.createStream();
     var duplicateCount = {};
+    var  errorTypeMessage;
     progress(request(url))
     .on("progress", function (state) {
       logger.info("progress", state);
@@ -428,34 +427,31 @@ async function validateCsvFile(url, res){
                       }
           
                     if(duplicateCount[key] >= 1){
+                      console.log("DUPLICATES")
                         const eror_message = `Please check your csv file for duplicates`;
-                        res.status(200).send({message: eror_message, status: 'duplicates'});
+                        errorTypeMessage =  eror_message;
                         throw eror_message;
                       }
-              logger.info(csv_data);
+                    logger.info(csv_data);
         }else{
           const eror_message = `Please check your csv file for missing 
           blank customer numbers and empty fields`;
-          res.status(200).send({message: eror_message, status: 'blank'});
+          errorTypeMessage =  eror_message;
           throw eror_message;
         }
       }catch(e){
-        const eror_message = `Please check your csv file for missing 
-        blank customer numbers and empty fields`;
-        res.status(200).send({message: eror_message, status: 'mixed_errors'});
-        throw eror_message;
+        console.log("GENERAAL ERROR!!");
+        if(errorTypeMessage){
+          res.status(200).send({message: errorTypeMessage, status: 'mixed_errors'});
+          return;
+        }
+        const eror_message = `Please make sure the file has correct cells named`;
+        res.status(200).send({message: errorTypeMessage, status: 'mixed_errors'});
       }
     })
     .on("end", async function (data) {
-     // do work here
-     res.status(200).send({message: "clean", status: 'clean'});
+     if(!errorTypeMessage) res.status(200).send({message: "clean", status: 'clean'});
     });
-  }catch(e){
-    console.log(e);
-    res.status(500).send({message: "An internal error occured", 
-    status: e});
-    throw e;
-  }
 }
 
 

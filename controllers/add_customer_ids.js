@@ -51,7 +51,7 @@ router.post('/current-week', (req, res) => {
 router.post('/validate-csv-file', async (req, res) => {
     const {url} = req.body;
     req.setTimeout(50000000);
-    await validateCsvFile(url, res);
+    validateCsvFile(url, res);
 });
 
 module.exports = router;
