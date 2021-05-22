@@ -75,7 +75,7 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
                 ...unionCollections
         ];
         
-       const report = count > 1 ? client.collection.aggregate(pipeline): client.collection.find();
+       const report = client.collection.aggregate(pipeline);
        return readDatabaseCursor(report, outputpath, res, readStream).then(() => client.close());
     })
 }
@@ -104,7 +104,7 @@ async function queryAllWeekParticipants(name, count, generateEntireReport, res){
                 } }
         );
         }
-        console.log(unionCollections)
+
         const pipeline = [
             { "$project": { 
                 "Customer Number": true, 
