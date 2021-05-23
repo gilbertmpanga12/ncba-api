@@ -39,7 +39,7 @@ admin.initializeApp({
 
 
 function start() {
-  let workQueue = new Queue("work", productionRedis);
+  let workQueue = new Queue("work", developmentRedis);
   workQueue.process(maxJobsPerWorker, function(job, done){
 
     const {url, name, count, operation, weekDuration} = job.data;
@@ -78,6 +78,43 @@ function start() {
           docsCount: totalDocsCount});
       });
 
+      // check if stream has completed
+      // csvStream.on("end", async () => {
+      //     const migration_count = await firestore().collection(`${name}_migration`)
+      //     .doc(name);
+      //     const main_count = await firestore().collection(`${name}_main`)
+      //     .doc(name);
+      //     const migration_exits = await migration_count.get();
+      //     const main_account_exists = await main_count.get();
+      //     if(!migration_exits.exists && !main_account_exists){
+      //       let week = {};
+      //       week[`week_${count}`] = totalDocsCount;
+      //       const stringifyWeek = JSON.stringify(week);
+      //       const store_main_records = await firestore().collection(`${name}_main`)
+      //       .doc(name).set([stringifyWeek]);
+      //       const store_migration_records = await firestore().collection(`${name}_migration`)
+      //       .doc(name).set([stringifyWeek]);
+      //     }else{
+      //       let migration_value = migration_exits.data();
+      //       let main_value = main_account_exists.data();
+      //       // look for index of certain we
+      //       let week = {};
+      //       week[`week_${count}`] = totalDocsCount;
+      //       const stringifyWeek = JSON.stringify(week);
+
+      //       let migration_index = migration_value.indexOf(stringifyWeek);
+      //       let main_index = main_value.indexOf(main_value);
+
+      //       let valueForMigration = JSON.parse(migration_value[migration_index])[`week_${count}`];
+      //       let valueForMain = JSON.parse(main_value[main_index])[`week_${count}`];
+
+      //       const store_main_records = await firestore().collection(`${name}_main`)
+      //       .doc(count).set({week: totalDocsCount + Number(valueForMigration)});
+      //       const store_migration_records = await firestore().collection(`${name}_migration`)
+      //       .doc(count).set({week: totalDocsCount + Number(valueForMain)});
+      //     }
+      // });
+      
       progress(request(url))
       .pipe(csvStream)
       .pipe(validateJSONData())

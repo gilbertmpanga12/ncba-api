@@ -168,22 +168,6 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
       const detailsCounter = await firestore().collection(`${name}_week_${count}_counter`).doc(`${count}`).get();
       const all_participants = await firestore().collection(`${name}_all_participants_count`).doc(name).get();
       
-      // if(detailsCounter.exists && all_participants.exists){
-      //   const participantsStore = all_participants.data()['participantsStore'];
-      //   const week = {};
-      //   week[`week_${count}`] = detailsCounter;
-      //   participantsStore.push(week);
-      //   await storeParticpantsArray(name, participantsStore);
-      // }else{
-      //   const participantsStore = [];
-      //   const week = {};
-      //   week[`week_${count}`] = detailsCounter.data();
-      //   participantsStore.push(week);
-      //   await storeParticpantsArray(name, participantsStore);
-      // }
-
-      // await reduceBy10AfterRandomization(name, count);
-      // disable randomizaition
     await clusterWeeklyLoosers(luckyWinners, count, name, weekDuration);
   } catch (e) {
     logger.info("Store randomised luck winners error", e);
