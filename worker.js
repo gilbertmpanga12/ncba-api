@@ -78,46 +78,10 @@ function start() {
           docsCount: totalDocsCount});
       });
 
-      // check if stream has completed
-      // csvStream.on("end", async () => {
-      //     const migration_count = await firestore().collection(`${name}_migration`)
-      //     .doc(name);
-      //     const main_count = await firestore().collection(`${name}_main`)
-      //     .doc(name);
-      //     const migration_exits = await migration_count.get();
-      //     const main_account_exists = await main_count.get();
-      //     if(!migration_exits.exists && !main_account_exists){
-      //       let week = {};
-      //       week[`week_${count}`] = totalDocsCount;
-      //       const stringifyWeek = JSON.stringify(week);
-      //       const store_main_records = await firestore().collection(`${name}_main`)
-      //       .doc(name).set([stringifyWeek]);
-      //       const store_migration_records = await firestore().collection(`${name}_migration`)
-      //       .doc(name).set([stringifyWeek]);
-      //     }else{
-      //       let migration_value = migration_exits.data();
-      //       let main_value = main_account_exists.data();
-      //       // look for index of certain we
-      //       let week = {};
-      //       week[`week_${count}`] = totalDocsCount;
-      //       const stringifyWeek = JSON.stringify(week);
-
-      //       let migration_index = migration_value.indexOf(stringifyWeek);
-      //       let main_index = main_value.indexOf(main_value);
-
-      //       let valueForMigration = JSON.parse(migration_value[migration_index])[`week_${count}`];
-      //       let valueForMain = JSON.parse(main_value[main_index])[`week_${count}`];
-
-      //       const store_main_records = await firestore().collection(`${name}_main`)
-      //       .doc(count).set({week: totalDocsCount + Number(valueForMigration)});
-      //       const store_migration_records = await firestore().collection(`${name}_migration`)
-      //       .doc(count).set({week: totalDocsCount + Number(valueForMain)});
-      //     }
-      // });
       
       progress(request(url))
       .pipe(csvStream)
-      .pipe(validateJSONData())
+      .pipe(validateJSONData(count))
       .pipe(batch).
        pipe(storeData(client.collection, client.migration))
       .on("finish", () => {
@@ -299,6 +263,7 @@ async function getLucky10(name, count, job, done){
                             "Loan Reference": true , 
                             "Loan Repaid Date": true, 
                             "Loan Start Date": true,
+                            "week": true,
                             "_id": 0}
                     }]
                 } }
@@ -308,7 +273,7 @@ async function getLucky10(name, count, job, done){
             { "$project": { 
                 "Customer Number": true, 
                 "Loan Reference": true , 
-                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                "Loan Repaid Date": true, "Loan Start Date": true, "week": true, "_id": 0} },
                 ...unionCollections,
                 {"$sample": {"size": 10}}
         ];
@@ -319,8 +284,8 @@ async function getLucky10(name, count, job, done){
           "Customer Number": lucky_winners["Customer Number"],
           "Loan Reference": lucky_winners["Loan Reference"],
           "Loan Repaid Date": lucky_winners["Loan Repaid Date"],
-          "Loan Start Date": lucky_winners["Loan Start Date"]
-
+          "Loan Start Date": lucky_winners["Loan Start Date"],
+          "week": lucky_winners["week"]
         };
       });
       // check if winners already entred

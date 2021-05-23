@@ -106,6 +106,7 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
                             "Loan Reference": true , 
                             "Loan Repaid Date": true, 
                             "Loan Start Date": true,
+                            "week": true,
                             "_id": 0}
                     }]
                 } }
@@ -115,7 +116,7 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
             { "$project": { 
                 "Customer Number": true, 
                 "Loan Reference": true , 
-                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                "Loan Repaid Date": true, "Loan Start Date": true, "week": true, "_id": 0} },
                 ...unionCollections,
                 {"$sample": {"size": 10}}
         ];
@@ -128,7 +129,8 @@ async function RandomiseLuckyWinners(name, count, weekDuration, res) {
               "Customer Number":csv_doc["Customer Number"],
               "Loan Reference": csv_doc["Loan Reference"],
               "Loan Repaid Date": csv_doc["Loan Repaid Date"],
-              "Loan Start Date": csv_doc["Loan Start Date"]
+              "Loan Start Date": csv_doc["Loan Start Date"],
+              "week": csv_doc["week"]
             };
           });
           storeRandomisedWinners(count, luckyWinners, name, weekDuration);
@@ -180,41 +182,10 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
     const customer_details = admin
       .firestore()
       .collection(collection);
-     // const filterCustomerNumber = luckyWinners.map(customerNumber => customerNumber["Customer Number"]);
-      // const filter = {
-      //   "Customer Number": {
-      //     "$in":  filterCustomerNumber
-      //   }
-      // };
-      // const _clearWinnersFromMongo = await (await openDatabase(`${name}_week_${count}_customer_details`,
-      // `${name}_week_${count}_migration`)).migration.deleteMany(filter);
- await (await openDatabase(`${name}_week_${count}_customer_details`,
-      `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[0]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[1]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[2]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[3]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[4]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[5]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[6]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[7]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[8]["Customer Number"]});
-  await (await openDatabase(`${name}_week_${count}_customer_details`,
-  `${name}_week_${count}_migration`)).migration.deleteOne({"Customer Number": luckyWinners[9]["Customer Number"]});
-
-    await Promise.all(
-      luckyWinners.map((winner) => {
-        const uid = winner['Customer Number'];
-        customer_details.doc(uid).delete();
-      })
-    ).then((res) => logger.info("cleaned winners", res));
+      luckyWinners.forEach(async (doc) => {
+        await (await openDatabase(`${name}_week_${doc['week']}_customer_details`,
+      `${name}_week_${doc['week']}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
+      });
 
     await firestore().collection('all_projects')
     .doc(name).collection('week_state_draw')
