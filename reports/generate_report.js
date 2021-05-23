@@ -62,7 +62,6 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
                             "Loan Reference": true , 
                             "Loan Repaid Date": true, 
                             "Loan Start Date": true,
-                            "week": false,
                             "_id": 0}
                     }]
                 } }
@@ -72,7 +71,7 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
             { "$project": { 
                 "Customer Number": true, 
                 "Loan Reference": true , 
-                "Loan Repaid Date": true, "Loan Start Date": true, "week": false, "_id": 0} },
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
                 ...unionCollections
         ];
         
@@ -100,7 +99,6 @@ async function queryAllWeekParticipants(name, count, generateEntireReport, res){
                             "Loan Reference": true , 
                             "Loan Repaid Date": true, 
                             "Loan Start Date": true,
-                            "week": false,
                             "_id": 0}
                     }]
                 } }
@@ -111,7 +109,7 @@ async function queryAllWeekParticipants(name, count, generateEntireReport, res){
             { "$project": { 
                 "Customer Number": true, 
                 "Loan Reference": true , 
-                "Loan Repaid Date": true, "Loan Start Date": true, "week": false, "_id": 0} },
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
                 ...unionCollections
         ];
         
