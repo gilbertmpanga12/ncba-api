@@ -16,7 +16,6 @@ function writeToFile(outpathFile, res, hasFinished){
     callback();
     };
     writeStream.on("finish", () => {
-        console.log('I am done!!!! creating file');
         fileOutputStream.end();
         // res.status(200).send({csvUrl:})
         

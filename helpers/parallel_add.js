@@ -322,22 +322,12 @@ async function setDocumentCount(name, count, docsCount, operationType){
                 {"$count": "totalCount"}
         ];
        const report = client.collection.aggregate(pipeline, (err, res) => {
-         const processCounter = new Promise((resolve, reject) => {
-          if(err) reject(err);
-          res.forEach(doc => {
-            let migrationcount;
-            migrationcount = doc['totalCount'];
-            if(migrationcount){
-              resolve(migrationcount);
-            }
-           });
+        if(err) throw err;
+        res.forEach(cb => {
+          if(cb.totalCount){
+            newWeekCollection.set({current_count: cb.totalCount}, {merge: true}).then(() => null);
+          }
         });
-
-        processCounter.then(migrationcount => {
-          console.log('my resolved shit',  migrationcount);
-          newWeekCollection.set({current_count: migrationcount}, {merge: true}).then(() => null);
-        });
-         
        });
        
     })
