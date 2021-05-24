@@ -89,7 +89,7 @@ async function queryAllWeekParticipants(name, count, generateEntireReport, res){
     openDatabase(`${name}_week_${Number(count)}_customer_details`,
     `${name}_week_${Number(count)}_migration`).then(client => {
         const unionCollections = [];
-        for(let start=Number(count)-1-1;start >= 1; start--){
+        for(let start=Number(count)-1;start >= 1; start--){
             unionCollections.push(
                 { "$unionWith": {
                     "coll": `${name}_week_${start}_customer_details`,
