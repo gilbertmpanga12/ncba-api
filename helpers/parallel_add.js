@@ -20,7 +20,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", productionRedis);
+let workQueue = new Queue("work", developmentRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -179,15 +179,33 @@ async function storeRandomisedWinners(count, luckyWinners, name, weekDuration) {
 async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
   try {
     let collection = `${name}_week_${count}_migration`;
-    const customer_details = admin
-      .firestore()
-      .collection(collection);
-      
+    const pastWinners =  await admin
+    .firestore()
+    .collection(`${name}_week_${Number(count) - 1}_winners`)
+    .doc(`${Number(count) - 1 }`);
+    const winners = await pastWinners.get();
+
+    if(Number(count) === 1){
       luckyWinners.forEach(async (doc) => {
         await (await openDatabase(`${name}_week_${doc['week']}_customer_details`,
       `${name}_week_${doc['week']}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
       });
+    } 
 
+
+    if(Number(count) > 1 && winners.exists){
+      const _winners = winners.data()['winners'];
+      _winners.forEach(async (doc) => {
+        await (await openDatabase(`${name}_week_${doc['week']}_customer_details`,
+      `${name}_week_${doc['week']}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
+      });
+    }
+
+    const customer_details = admin
+      .firestore()
+      .collection(collection);
+      
+   
     await firestore().collection('all_projects')
     .doc(name).collection('week_state_draw')
     .doc(`week_${count}`).set({randomised: true}, {merge: true});
@@ -267,7 +285,7 @@ async function setDocumentCount(name, count, docsCount, operationType){
        const newWeekCount = await newWeekCollection.get();
        if(!newWeekCount.exists || newWeekCount.data()['current_count'] === 0){
 
-        openDatabase(`${name}_week_${count}_customer_details`,
+        openDatabase(`${name}_week_${Number(count)}_customer_details`,
     `${name}_week_${count}_migration`).then(client => {
         const unionCollections = [];
         for(let start=count-1;start >= 1; start--){

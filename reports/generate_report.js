@@ -21,8 +21,8 @@ function queryFirstWeek(name, count, res){
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_${count}_customer_details`,
-    `${name}_week_${count}_migration`).then(client => {
+    openDatabase(`${name}_week_${Number(count)}_customer_details`,
+    `${name}_week_${Number(count)}_migration`).then(client => {
         const cursor = client.collection.find({}, {fields: {_id:0}});
         return readDatabaseCursor(cursor, outputpath, res, readStream).then(() => client.close());
     }).catch(err => {
@@ -45,14 +45,14 @@ function readDatabaseCursor(cursor, path, res, readStream){
 
 function queryAdditionalWeeks(name, count, generateEntireReport, res){
     const allparticipants = __dirname + `/final_week_${name}_week_batch.csv`;
-    const outputpath = generateEntireReport ? allparticipants : __dirname + `/${name}_week_${count}_batch.csv`;
+    const outputpath = generateEntireReport ? allparticipants : __dirname + `/${name}_week_${Number(count)}_batch.csv`;
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_${count}_customer_details`,
-    `${name}_week_${count}_migration`).then(client => {
+    openDatabase(`${name}_week_${Number(count)}_customer_details`,
+    `${name}_week_${Number(count)}_migration`).then(client => {
         const unionCollections = [];
-        for(let start=count-1;start >= 1; start--){
+        for(let start=Number(count)-1;start >= 1; start--){
             unionCollections.push(
                 { "$unionWith": {
                     "coll": `${name}_week_${start}_migration`,
@@ -86,10 +86,10 @@ async function queryAllWeekParticipants(name, count, generateEntireReport, res){
     const readStream = new stream.Readable({objectMode: true});
     readStream._read = () => {};
     readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
-    openDatabase(`${name}_week_${count}_customer_details`,
-    `${name}_week_${count}_migration`).then(client => {
+    openDatabase(`${name}_week_${Number(count)}_customer_details`,
+    `${name}_week_${Number(count)}_migration`).then(client => {
         const unionCollections = [];
-        for(let start=count-1;start >= 1; start--){
+        for(let start=Number(count)-1-1;start >= 1; start--){
             unionCollections.push(
                 { "$unionWith": {
                     "coll": `${name}_week_${start}_customer_details`,
