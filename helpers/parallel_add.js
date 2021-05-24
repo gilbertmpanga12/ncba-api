@@ -182,6 +182,7 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
     const customer_details = admin
       .firestore()
       .collection(collection);
+      
       luckyWinners.forEach(async (doc) => {
         await (await openDatabase(`${name}_week_${doc['week']}_customer_details`,
       `${name}_week_${doc['week']}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
