@@ -20,7 +20,7 @@ const developmentRedis =  "redis://127.0.0.1:6379";
 
 let Queue = require("bull");
 
-let workQueue = new Queue("work", developmentRedis);
+let workQueue = new Queue("work", productionRedis);
 
 async function ParallelIndividualWrites(
   url,
@@ -280,7 +280,7 @@ async function setDocumentCount(name, count, docsCount, operationType){
       if(Number(count) > 1 && operationType === "DATA_CREATION"){
        const diff = Number(count) - 1;
        const oldCountStore = firestore().collection(`${name}_week_${diff}_counter`).doc(`${diff}`);
-       const newWeekCollection = await firestore().collection(`${name}_week_${count}_counter`)
+       const newWeekCollection = await firestore().collection(`${name}_week_${Number(count)}_counter`)
        .doc(`${count}`);
        const newWeekCount = await newWeekCollection.get();
        if(!newWeekCount.exists || newWeekCount.data()['current_count'] === 0){
@@ -288,7 +288,7 @@ async function setDocumentCount(name, count, docsCount, operationType){
         openDatabase(`${name}_week_${Number(count)}_customer_details`,
     `${name}_week_${count}_migration`).then(client => {
         const unionCollections = [];
-        for(let start=count-1;start >= 1; start--){
+        for(let start=Number(count)-1;start >= 1; start--){
             unionCollections.push(
                 { "$unionWith": {
                     "coll": `${name}_week_${start}_migration`,
@@ -315,7 +315,12 @@ async function setDocumentCount(name, count, docsCount, operationType){
         if(err) throw err;
         res.forEach(cb => {
           if(cb.totalCount){
-            newWeekCollection.set({current_count: cb.totalCount}, {merge: true}).then(() => null);
+            if(Number(count) >= 3){
+              newWeekCollection.set({current_count: cb.totalCount-10}, {merge: true}).then(() => null);
+            }else{
+              newWeekCollection.set({current_count: cb.totalCount}, {merge: true}).then(() => null);
+            }
+            
           }
         });
        });
