@@ -187,17 +187,16 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
 
     if(Number(count) === 1){
       luckyWinners.forEach(async (doc) => {
-        await (await openDatabase(`${name}_week_${doc['week']}_customer_details`,
-      `${name}_week_${doc['week']}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
+        await (await openDatabase(`${name}_week_${Number(doc['week'])}_customer_details`,
+      `${name}_week_${Number(doc['week'])}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
       });
     } 
-
 
     if(Number(count) > 1 && winners.exists){
       const _winners = winners.data()['winners'];
       _winners.forEach(async (doc) => {
-        await (await openDatabase(`${name}_week_${doc['week']}_customer_details`,
-      `${name}_week_${doc['week']}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
+        await (await openDatabase(`${name}_week_${Number(doc['week'])}_customer_details`,
+      `${name}_week_${Number(doc['week'])}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
       });
     }
 
@@ -205,7 +204,6 @@ async function clusterWeeklyLoosers(luckyWinners, count, name, weekDuration) {
       .firestore()
       .collection(collection);
       
-   
     await firestore().collection('all_projects')
     .doc(name).collection('week_state_draw')
     .doc(`week_${count}`).set({randomised: true}, {merge: true});
@@ -313,10 +311,23 @@ async function setDocumentCount(name, count, docsCount, operationType){
         ];
        const report = client.collection.aggregate(pipeline, (err, res) => {
         if(err) throw err;
-        res.forEach(cb => {
+        res.forEach(async (cb) => {
           if(cb.totalCount){
             if(Number(count) >= 3){
               newWeekCollection.set({current_count: cb.totalCount-10}, {merge: true}).then(() => null);
+              /*fxing bug that starts at 3 - 5*/
+              const pastWinners =  await admin
+              .firestore()
+              .collection(`${name}_week_${Number(count) - 1}_winners`)
+              .doc(`${Number(count) - 1 }`);
+              const winners = await pastWinners.get();
+              if(winners.exists){
+                const _winners = winners.data()['winners'];
+              _winners.forEach(async (doc) => {
+                await (await openDatabase(`${name}_week_${Number(doc['week'])}_customer_details`,
+              `${name}_week_${Number(doc['week'])}_migration`)).migration.deleteOne({"_id": doc["Loan Reference"]});
+              });
+              }
             }else{
               newWeekCollection.set({current_count: cb.totalCount}, {merge: true}).then(() => null);
             }
