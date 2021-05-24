@@ -1,7 +1,8 @@
 const {Router} = require('express');
 const router = Router();
 const {ParallelIndividualWrites, RandomiseLuckyWinners,
-    AddWeekStates, getJobId, pickLucky3, currentWeek, validateCsvFile} = require('../helpers/parallel_add');
+    AddWeekStates, getJobId, pickLucky3, currentWeek, 
+    validateCsvFile} = require('../helpers/parallel_add');
 
 
 
@@ -20,7 +21,6 @@ router.post('/randomise-lucky-winners', async (req, res, next) => {
     req.setTimeout(50000000);
     await RandomiseLuckyWinners(name, count, weekDuration, res);
 });
-
 
 
 router.post('/enter-grand-draw', async (req, res, next) => {

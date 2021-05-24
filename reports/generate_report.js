@@ -80,6 +80,7 @@ function queryAdditionalWeeks(name, count, generateEntireReport, res){
     })
 }
 
+
 async function queryAllWeekParticipants(name, count, generateEntireReport, res){
     const allparticipants = __dirname + `/all_participants_${name}_week_batch.csv`;
     const outputpath = allparticipants;
@@ -119,6 +120,56 @@ async function queryAllWeekParticipants(name, count, generateEntireReport, res){
 }
 
 
+async function queryAllWeekParticipantsCount(name, count, generateEntireReport, res){
+    const allparticipants = __dirname + `/all_participants_${name}_week_batch.csv`;
+    const outputpath = allparticipants;
+    const readStream = new stream.Readable({objectMode: true});
+    readStream._read = () => {};
+    readStream.pipe(writeToFile(outputpath, res, false)).on("finish", () => uploadToStorage(outputpath, res));
+    openDatabase(`${name}_week_${Number(count)}_customer_details`,
+    `${name}_week_${Number(count)}_migration`).then(client => {
+        const unionCollections = [];
+        for(let start=Number(count)-1;start >= 1; start--){
+            unionCollections.push(
+                { "$unionWith": {
+                    "coll": `${name}_week_${start}_customer_details`,
+                    "pipeline": [{
+                        "$project": { 
+                            "Customer Number": true, 
+                            "Loan Reference": true , 
+                            "Loan Repaid Date": true, 
+                            "Loan Start Date": true,
+                            "_id": 0}
+                    }]
+                } }
+        );
+        }
+
+        const pipeline = [
+            { "$project": { 
+                "Customer Number": true, 
+                "Loan Reference": true , 
+                "Loan Repaid Date": true, "Loan Start Date": true, "_id": 0} },
+                ...unionCollections,
+                {"$count": "totalCount"}
+        ];
+        
+        const report = client.collection.aggregate(pipeline, (err, result) => {
+            if(err) res.status(500).send({totalCount:cb.totalCount});
+
+            if(result){
+                result.forEach(async (cb) => {
+                    if(cb.totalCount){
+                      res.status(200).send({totalCount:cb.totalCount });
+                    }
+                  });
+            }
+           });
+       
+    })
+}
+
+
 async function uploadToStorage(filePath, res){
     try{
         const bucket = firebase.storage().bucket(google_storage_bucket);
@@ -134,4 +185,4 @@ async function uploadToStorage(filePath, res){
 
 
 
-module.exports= {generateReport, queryAllWeekParticipants};
+module.exports= {generateReport, queryAllWeekParticipants, queryAllWeekParticipantsCount};

@@ -1,7 +1,7 @@
 const {Router} = require('express');
 const router = Router();
 const {printCsv, printPdf, printCsvSingleWeek} = require('../helpers/reports');
-const {generateReport, queryAllWeekParticipants} = require('../reports/generate_report');
+const {generateReport, queryAllWeekParticipants, queryAllWeekParticipantsCount} = require('../reports/generate_report');
 const {getLuck3Report} = require('../helpers/reports');
 
 var fonts = {
@@ -113,8 +113,19 @@ router.post('/generate-weekly-csv', async (req,res) => {
 
 router.post('/quey-all-participants', async (req,res) => {
     const {count, name, generateEntireReport} = req.body;
-	await queryAllWeekParticipants(name, count, generateEntireReport, res);
+	await queryAllWeekParticipantsCount(name, count, generateEntireReport, res);
 });
+
+
+
+router.post('/query-all-participants', async (req, res, next) => {
+    const {weekDuration, name, count} = req.body;
+    req.setTimeout(50000000);
+    await RandomiseLuckyWinners(name, count, weekDuration, res);
+});
+
+
+
 
 router.post('/get-lucky-3-report/:type', async (req, res, next) => {
     const {name} = req.body;
