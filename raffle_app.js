@@ -9,7 +9,6 @@ const port = 6000;
 const add_customer_numbers = require('./controllers/add_customer_ids');
 const reports = require('./controllers/reports');
 const {getFirebaseUser} = require('./helpers/firebaseSecurity');
-// patch
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -32,5 +31,4 @@ res.status(200).json({status: true, ...req.user}));
 app.use('/ncba-api/api',getFirebaseUser,  add_customer_numbers);
 app.use('/ncba-api/api/reports',getFirebaseUser, reports);
 app.get('/ncba-api', (req, res) => res.send({message: "Raffle app active"}));
-
-app.listen(port, () => console.log('Running app 🤖🤖 ' + port));
+app.listen(port, () => console.log('Running app 🤖' + port));
