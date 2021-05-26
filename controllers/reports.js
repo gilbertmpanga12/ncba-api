@@ -113,15 +113,15 @@ router.post('/generate-weekly-csv', async (req,res) => {
 
 router.post('/quey-all-participants', async (req,res) => {
     const {count, name, generateEntireReport} = req.body;
-	await queryAllWeekParticipantsCount(name, count, generateEntireReport, res);
+	await queryAllWeekParticipants(name, count, generateEntireReport, res);
 });
 
 
 
-router.post('/query-all-participants', async (req, res, next) => {
+router.post('/query-all-participants-count', async (req, res, next) => {
     const {weekDuration, name, count} = req.body;
     req.setTimeout(50000000);
-    await RandomiseLuckyWinners(name, count, weekDuration, res);
+    await queryAllWeekParticipantsCount(name, count, weekDuration, res);
 });
 
 
